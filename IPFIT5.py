@@ -2,14 +2,15 @@ import curses
 
 from os import sep
 
-from FilePicker import filepicker_main as image_filepicker
-from Store import Store
-from Menu import Menu
-
 from Modules.EmailModule import EmailModule
 from Modules.HackedModule import HackedModule
 from Modules.PhotoModule import PhotoModule
 from Modules.FileModule import FileModule
+
+from Utils.FilePicker import filepicker_main as image_filepicker
+from Utils.Store import Store
+
+from Utils.Menu import Menu
 
 global_stores = Store()
 
