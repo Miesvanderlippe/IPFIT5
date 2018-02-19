@@ -10,7 +10,7 @@ class ModuleInterface:
         """
         raise NotImplementedError()
 
-    def status(self) -> str:
+    def status(self):
         """
         Should return the current status using a string (starting, runnning,
         done etc).
@@ -18,7 +18,7 @@ class ModuleInterface:
         """
         raise NotImplementedError()
 
-    def progress(self) -> int:
+    def progress(self):
         """
         Progress in percentage.
         :return: Progression
