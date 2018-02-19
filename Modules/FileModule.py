@@ -1,4 +1,4 @@
-from Interfaces import ModuleInterface
+from Interfaces.ModuleInterface import ModuleInterface
 
 
 class FileModule(ModuleInterface):
