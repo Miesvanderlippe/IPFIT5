@@ -5,4 +5,3 @@ class PhotoModule(ModuleInterface):
 
     def __init__(self):
         pass
-

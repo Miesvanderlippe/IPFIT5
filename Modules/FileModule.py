@@ -5,4 +5,3 @@ class FileModule(ModuleInterface):
 
     def __init__(self):
         pass
-
