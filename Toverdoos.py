@@ -1,7 +1,8 @@
 
 class Toverdoos:
 
-    def loop(self):
+    @classmethod
+    def loop(cls):
         input("Press enter to exit...")
 
 
