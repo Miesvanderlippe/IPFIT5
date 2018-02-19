@@ -1,7 +1,7 @@
 
 class Toverdoos:
 
-    def loop(self) -> None:
+    def loop(self):
         input("Press enter to exit...")
 
 

@@ -3,7 +3,7 @@ class ModuleInterface:
     def __init__(self):
         raise NotImplementedError()
 
-    def run(self) -> None:
+    def run(self):
         """
         Should run the module
         :return: None
