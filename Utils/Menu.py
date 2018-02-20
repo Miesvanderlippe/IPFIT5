@@ -5,7 +5,7 @@ from curses import panel
 
 
 class Menu(object):
-    def __init__(self, items, stdscreen, sub: bool = True):
+    def __init__(self, items, stdscreen, sub=True):
         self.window = stdscreen.subwin(0, 0)
         self.window.keypad(1)
         self.panel = panel.new_panel(self.window)
