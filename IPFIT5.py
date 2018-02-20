@@ -28,13 +28,16 @@ class MainApp(object):
         submenu_photos = Menu(PhotoModule.menu(), self.screen)
         submenu_files = Menu(FileModule.menu(), self.screen)
 
-        if self.stores.image_store.get_state() == 'initial' or self.stores.image_store.get_state() is None:
+        if self.stores.image_store.get_state() == 'initial' \
+                or self.stores.image_store.get_state() is None:
             main_menu_items = [
                 ('Load image', self.filepicker)
             ]
         else:
             main_menu_items = [
-                ('Load image (Selected image: {})'.format(self.stores.image_store.get_state().split(sep)[-1]), self.filepicker),
+                ('Load image (Selected image: {})'.format(
+                    self.stores.image_store.get_state().split(sep)[-1]),
+                    self.filepicker),
                 ('Emails', submenu_email.display),
                 ('Hacked', submenu_hacked.display),
                 ('Pictures', submenu_photos.display),

@@ -1,7 +1,8 @@
 import os
 
 from asciimatics.event import KeyboardEvent
-from asciimatics.widgets import Frame, Layout, FileBrowser, Widget, Label, Text, Divider
+from asciimatics.widgets import Frame, Layout, FileBrowser, Widget, Label, \
+    Text, Divider
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
 from asciimatics.exceptions import ResizeScreenError, StopApplication
@@ -12,7 +13,8 @@ global_store = None
 class FilepickerFrame(Frame):
     def __init__(self, screen, store):
         super(FilepickerFrame, self).__init__(
-            screen, screen.height, screen.width, has_border=False, name="Filepicker")
+            screen, screen.height, screen.width, has_border=False,
+            name="Filepicker")
 
         self.store = store
 
@@ -55,7 +57,8 @@ class FilepickerFrame(Frame):
 
 def filepicker(screen, old_scene):
     global global_store
-    screen.play([Scene([FilepickerFrame(screen, global_store)], -1)], stop_on_resize=True, start_scene=old_scene)
+    screen.play([Scene([FilepickerFrame(screen, global_store)], -1)],
+                stop_on_resize=True, start_scene=old_scene)
 
 
 def filepicker_main(store):
@@ -65,7 +68,8 @@ def filepicker_main(store):
     last_scene = None
     while True:
         try:
-            Screen.wrapper(filepicker, catch_interrupt=False, arguments=[last_scene])
+            Screen.wrapper(filepicker, catch_interrupt=False,
+                           arguments=[last_scene])
             break
         except ResizeScreenError as e:
             last_scene = e.scene

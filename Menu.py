@@ -44,13 +44,19 @@ class Menu(object):
             statusbarstr = "Press 'q' to exit"
 
             # Centering calculations
-            start_x_title = int((width // 2) - (len(title) // 2) - len(title) % 2)
-            start_x_subtitle = int((width // 2) - (len(subtitle) // 2) - len(subtitle) % 2)
+            start_x_title = \
+                int((width // 2) - (len(title) // 2) - len(title) % 2)
+            start_x_subtitle = \
+                int((width // 2) - (len(subtitle) // 2) - len(subtitle) % 2)
 
             # Render status bar
             self.window.attron(curses.color_pair(3))
             self.window.addstr(height - 1, 0, statusbarstr)
-            self.window.addstr(height - 1, len(statusbarstr), " " * (width - len(statusbarstr) - 1))
+            self.window.addstr(
+                height - 1,
+                len(statusbarstr),
+                " " * (width - len(statusbarstr) - 1)
+            )
             self.window.attroff(curses.color_pair(3))
 
             # Turning on attributes for title
