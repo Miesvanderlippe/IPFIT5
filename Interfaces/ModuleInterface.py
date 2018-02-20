@@ -1,7 +1,17 @@
+import curses
+
 
 class ModuleInterface:
     def __init__(self):
         raise NotImplementedError()
+
+    @staticmethod
+    def menu():
+        menu_items = [
+            ('Placeholder', curses.beep)
+        ]
+
+        return menu_items
 
     def run(self):
         """
