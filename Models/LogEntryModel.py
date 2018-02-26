@@ -3,43 +3,34 @@ from datetime import datetime
 
 class LogEntryModel:
     """
-    A class to represent log entries in a more flexible way. It displays entries
-    using vibrant colours or as a more neutral string. It's primary function is
-    to carry the information throughout the program.
+    A class to represent log entries in a more flexible way. It displays
+    entries using vibrant colours or as a more neutral string. It's primary
+    function is to carry the information throughout the program.
     """
-    # When the event happened
-    when = datetime
-    # Who started the event
-    who: str
-    # What's happening
-    what: str
-    # Why it's happening
-    why: str
-    # Where it happened
-    where: str
-    # What we're doing
-    method: str
-    # What we're using to archive the goal
-    using: str
-    # What the result is
-    result: str
-    # The module that created the instance.
-    module: str
-    # Whether the entry is information, an error or a negative or positive
-    # result
-    resultType: str
 
     def __init__(self):
+        # When the event happened
+        self.when = datetime.now()
+        # Who started the event
         self.who = ""
+        # What's happening
         self.what = ""
+        # Where it happened
         self.where = ""
         self.when = datetime.now()
+        # Why it's happening
         self.why = ""
+        # How we're doing we're doing it
         self.method = ""
+        # What we're using to archive the goal
         self.using = ""
+        # What the result is
         self.result = ""
-        self.module = __class__.__name__
-        self.resultType: LogEntryModel.ResultType.informative
+        # The module that created the instance.
+        self.module = "Logger"
+        # Whether the entry is information, an error or a negative or positive
+        # result
+        self.resultType = LogEntryModel.ResultType.informative
 
     class ResultType:
         positive = "[+]"
