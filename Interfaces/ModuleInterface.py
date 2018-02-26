@@ -1,7 +1,11 @@
 import curses
+from Utils.Logger import ExtendedLogger
 
 
 class ModuleInterface:
+
+    logger = ExtendedLogger()
+
     def __init__(self):
         raise NotImplementedError()
 
