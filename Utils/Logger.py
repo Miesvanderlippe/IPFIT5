@@ -7,7 +7,7 @@ class ExtendedLogger(logging.Logger):
     def __init__(self, class_name):
         super().__init__(class_name)
 
-    def write_log(self, log_entry: LogEntryModel):
+    def write_log(self, log_entry):
 
         if log_entry.resultType == LogEntryModel.ResultType.positive:
             self.info(log_entry.get_message())
