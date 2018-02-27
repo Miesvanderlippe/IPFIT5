@@ -9,14 +9,14 @@ from Utils.Store import Store
 
 
 class Ewf(pytsk3.Img_Info):
-    def __init__(self, store):
-        self.store = store
+    def __init__(self):
+        self.store = Store().image_store
 
         setrecursionlimit(100000)
 
         self.image_handle = None
 
-        self.ext = PathlibPath(store.get_state()).suffix.lower()[1:]
+        self.ext = PathlibPath(self.store.get_state()).suffix.lower()[1:]
         self.block_size = 0
         self.search_result = None
         self.sha_sum = None
@@ -263,7 +263,7 @@ if __name__ == '__main__':
         }
     )
 
-    ewf = Ewf(store.image_store)
+    ewf = Ewf()
 
     volume = ewf.info()
 
