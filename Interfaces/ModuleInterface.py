@@ -4,25 +4,25 @@ from Utils.Logger import ExtendedLogger
 
 class ModuleInterface:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = ExtendedLogger(self.__class__.__name__)
 
     @staticmethod
-    def menu():
+    def menu() -> [(str, function)]:
         menu_items = [
             ('Placeholder', curses.beep)
         ]
 
         return menu_items
 
-    def run(self):
+    def run(self) -> None:
         """
         Should run the module
         :return: None
         """
         raise NotImplementedError()
 
-    def status(self):
+    def status(self) -> str:
         """
         Should return the current status using a string (starting, runnning,
         done etc).
@@ -30,7 +30,7 @@ class ModuleInterface:
         """
         raise NotImplementedError()
 
-    def progress(self):
+    def progress(self) -> int:
         """
         Progress in percentage.
         :return: Progression

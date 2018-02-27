@@ -1,22 +1,21 @@
 import os
 
-from asciimatics.event import KeyboardEvent
+from asciimatics.event import KeyboardEvent, Event
 from asciimatics.widgets import Frame, Layout, FileBrowser, Widget, Label, \
     Text, Divider
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
 from asciimatics.exceptions import ResizeScreenError, StopApplication
-
-global_store = None
+from Utils.Store import Store
 
 
 class FilepickerFrame(Frame):
-    def __init__(self, screen, store):
+    def __init__(self, screen: Screen) -> None:
         super(FilepickerFrame, self).__init__(
             screen, screen.height, screen.width, has_border=False,
             name="Filepicker")
 
-        self.store = store
+        self.store = Store().image_store
 
         # Create the form layout...
         layout = Layout([1], fill_frame=True)
@@ -40,12 +39,12 @@ class FilepickerFrame(Frame):
         # Prepare the Frame for use.
         self.fix()
 
-    def selected(self):
+    def selected(self) -> None:
         # Just confirm whenever the user actually selects something.
         self.store.dispatch({'type': 'set_image', 'image': self._list.value})
         raise StopApplication("Image selected")
 
-    def process_event(self, event):
+    def process_event(self, event: Event) -> Event:
         # Do the key handling for this Frame.
         if isinstance(event, KeyboardEvent):
             if event.key_code in [ord('q'), ord('Q'), Screen.ctrl("c")]:
@@ -55,16 +54,12 @@ class FilepickerFrame(Frame):
         return super(FilepickerFrame, self).process_event(event)
 
 
-def filepicker(screen, old_scene):
-    global global_store
-    screen.play([Scene([FilepickerFrame(screen, global_store)], -1)],
+def filepicker(screen: Screen, old_scene: Scene) -> None:
+    screen.play([Scene([FilepickerFrame(screen)], -1)],
                 stop_on_resize=True, start_scene=old_scene)
 
 
-def filepicker_main(store):
-    global global_store
-    global_store = store
-
+def filepicker_main() -> None:
     last_scene = None
     while True:
         try:
