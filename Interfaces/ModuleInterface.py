@@ -4,10 +4,8 @@ from Utils.Logger import ExtendedLogger
 
 class ModuleInterface:
 
-    logger = ExtendedLogger()
-
     def __init__(self):
-        raise NotImplementedError()
+        self.logger = ExtendedLogger(self.__class__.__name__)
 
     @staticmethod
     def menu():
