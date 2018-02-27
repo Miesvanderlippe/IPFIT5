@@ -4,10 +4,10 @@ from Models.LogEntryModel import LogEntryModel
 
 class ExtendedLogger(logging.Logger):
 
-    def __init__(self, class_name):
+    def __init__(self, class_name: str) -> None:
         super().__init__(class_name)
 
-    def write_log(self, log_entry):
+    def write_log(self, log_entry: LogEntryModel) -> None:
 
         if log_entry.resultType == LogEntryModel.ResultType.positive:
             self.info(log_entry.get_message())
