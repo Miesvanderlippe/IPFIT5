@@ -8,7 +8,7 @@ class ModuleInterface:
         self.logger = ExtendedLogger(self.__class__.__name__)
 
     @staticmethod
-    def menu() -> [(str, function)]:
+    def menu() -> []:
         menu_items = [
             ('Placeholder', curses.beep)
         ]
