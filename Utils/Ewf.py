@@ -9,7 +9,7 @@ from Utils.Store import Store
 
 
 class Ewf(pytsk3.Img_Info):
-    def __init__(self):
+    def __init__(self) -> None:
         self.store = Store().image_store
 
         setrecursionlimit(100000)
@@ -21,7 +21,7 @@ class Ewf(pytsk3.Img_Info):
         self.search_result = None
         self.sha_sum = None
 
-    def info(self):
+    def info(self) -> pytsk3.Volume_Info:
         self.image_handle = pytsk3.Img_Info(url=self.store.get_state())
         volume = pytsk3.Volume_Info(self.image_handle)
 
@@ -29,24 +29,24 @@ class Ewf(pytsk3.Img_Info):
         return volume
 
     @staticmethod
-    def rreplace(s, old, new):
+    def rreplace(s: str, old: str, new: str) -> str:
         return (s[::-1].replace(old[::-1], new[::-1], 1))[::-1]
 
-    def hash_file(self, filename, path):
+    def hash_file(self, filename: str, path: str) -> str:
         self.file(path, filename, True)
         sha_sum = self.sha_sum
         self.sha_sum = None
 
         return sha_sum
 
-    def search_file(self, search):
+    def search_file(self, search: str):
         self.files(search)
         search_result = self.search_result
         self.search_result = None
 
         return search_result
 
-    def file(self, path, filename, hashing=False):
+    def file(self, path: str, filename: str, hashing=False):
         vol = self.info()
         img = self
         fs = None
@@ -118,7 +118,7 @@ class Ewf(pytsk3.Img_Info):
 
         return None
 
-    def files(self, search=None):
+    def files(self, search: str=None):
         vol = self.info()
         img = self
 
@@ -228,11 +228,11 @@ class Ewf(pytsk3.Img_Info):
 
 
 class EwfInfoMenu(object):
-    def __init__(self):
+    def __init__(self) -> str:
         pass
 
     @staticmethod
-    def menu(store):
+    def menu(store) -> [(str, function)]:
         ewf = Ewf(store)
         volume = ewf.info()
 
@@ -270,6 +270,8 @@ if __name__ == '__main__':
     menu_items = [
         ('Amount of partitions: {}'.format(volume.info.part_count), ''),
         ('', '')]
+
+    print(ewf.search_file('*'))
 
     for part in volume:
         menu_items.append(('Partition address: {}'.format(part.addr), ''))

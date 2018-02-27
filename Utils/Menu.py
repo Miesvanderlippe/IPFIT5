@@ -5,7 +5,7 @@ from curses import panel
 
 
 class Menu(object):
-    def __init__(self, items, stdscreen, sub=True):
+    def __init__(self, items, stdscreen, sub=True) -> None:
         self.window = stdscreen.subwin(0, 0)
         self.window.keypad(1)
         self.panel = panel.new_panel(self.window)
@@ -23,14 +23,14 @@ class Menu(object):
         curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
-    def navigate(self, n):
+    def navigate(self, n: int) -> None:
         self.position += n
         if self.position < 0:
             self.position = 0
         elif self.position >= len(self.items):
             self.position = len(self.items) - 1
 
-    def display(self):
+    def display(self) -> None:
         self.panel.top()
         self.panel.show()
         self.window.clear()
