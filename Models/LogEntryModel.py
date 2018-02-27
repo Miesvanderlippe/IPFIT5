@@ -8,7 +8,7 @@ class LogEntryModel:
     function is to carry the information throughout the program.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # When the event happened
         self.when = datetime.now()
         # Who started the event
@@ -17,7 +17,6 @@ class LogEntryModel:
         self.what = ""
         # Where it happened
         self.where = ""
-        self.when = datetime.now()
         # Why it's happening
         self.why = ""
         # How we're doing we're doing it
@@ -38,7 +37,7 @@ class LogEntryModel:
         error = "[!]"
         informative = "[i]"
 
-    def get_display_message(self):
+    def get_display_message(self) -> str:
         """
         Gets a colorful version of the log entry
         :return: ASCII colored display message
@@ -58,7 +57,7 @@ class LogEntryModel:
         return (color_prefix + base_format).format(self.resultType, self.when,
                                                    self.what, self.result)
 
-    def get_message(self):
+    def get_message(self) -> str:
         """
         Gets a neutral string representing the log entry
         :return: The log entry as a string
@@ -68,7 +67,7 @@ class LogEntryModel:
             self.method, self.using, self.module
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Overrides the tostring method
         :return: A displaystring representing the class
