@@ -1,19 +1,15 @@
-import pyewf
 import pytsk3
 
-from os import sep
 from re import match
 from hashlib import sha256
-from sys import setrecursionlimit, exc_info
+from sys import setrecursionlimit  # , exc_info (used in logger later on)
 from pathlib import Path as PathlibPath
 from datetime import datetime
-
-from Utils.Logging.Logging import Logging
+from Utils.Store import Store
 
 
 class Ewf(pytsk3.Img_Info):
     def __init__(self, store):
-        self.logger = Logging(self.__class__.__name__).logger
         self.store = store
 
         setrecursionlimit(100000)
@@ -24,36 +20,10 @@ class Ewf(pytsk3.Img_Info):
         self.block_size = 0
         self.search_result = None
         self.sha_sum = None
-        self.logger.debug('Extension: ' + self.ext)
-
-        if self.ext == 'e01' or self.ext == 's01' or self.ext == 'ex01' or \
-                self.ext == 'l01' or self.ext == 'lx01':
-            self.ewf_handle = pyewf.handle()
-            self.ewf_handle.open(pyewf.glob(store.get_state()))
-            self.logger.debug('EWF handle opened')
-            self.logger.info('{} loaded with EWF'.format(
-                store.get_state().split(sep)[-1]))
-            super(Ewf, self).__init__(url='',
-                                      type=pytsk3.TSK_IMG_TYPE_EXTERNAL)
-
-    def close(self):
-        self.logger.debug('EWF handle closed')
-        self.ewf_handle.close()
-
-    def read(self, offset, size):
-        self.ewf_handle.seek(offset)
-        return self.ewf_handle.read(size)
-
-    def get_size(self):
-        return self.ewf_handle.get_media_size()
 
     def info(self):
-        if self.ext == 'e01' or self.ext == 's01' or self.ext == 'ex01' or \
-                self.ext == 'l01' or self.ext == 'lx01':
-            volume = pytsk3.Volume_Info(self)
-        else:
-            self.image_handle = pytsk3.Img_Info(url=self.store.get_state())
-            volume = pytsk3.Volume_Info(self.image_handle)
+        self.image_handle = pytsk3.Img_Info(url=self.store.get_state())
+        volume = pytsk3.Volume_Info(self.image_handle)
 
         self.block_size = volume.info.block_size
         return volume
@@ -78,11 +48,7 @@ class Ewf(pytsk3.Img_Info):
 
     def file(self, path, filename, hashing=False):
         vol = self.info()
-        if self.ext == 'e01' or self.ext == 's01' or self.ext == 'ex01' or \
-                self.ext == 'l01' or self.ext == 'lx01':
-            img = self
-        else:
-            img = self.image_handle
+        img = self
         fs = None
         root = None
         # Open FS and Recurse
@@ -96,8 +62,10 @@ class Ewf(pytsk3.Img_Info):
                         fs = pytsk3.FS_Info(
                             img, offset=part.start * vol.info.block_size)
                     except IOError:
-                        _, e, _ = exc_info()
+                        # TODO: Implement logger
+                        # _, e, _ = exc_info()
                         # print('[-] Unable to open FS:\n {}'.format(e))
+                        pass
                     try:
                         root = fs.open_dir(path=path)
                     except OSError:
@@ -106,8 +74,10 @@ class Ewf(pytsk3.Img_Info):
             try:
                 fs = pytsk3.FS_Info(img)
             except IOError:
-                _, e, _ = exc_info()
+                # TODO: Implement logger
+                # _, e, _ = exc_info()
                 # print('[-] Unable to open FS:\n {}'.format(e))
+                pass
             root = fs.open_dir(path=path)
 
         for fs_object in root:
@@ -150,11 +120,8 @@ class Ewf(pytsk3.Img_Info):
 
     def files(self, search=None):
         vol = self.info()
-        if self.ext == 'e01' or self.ext == 's01' or self.ext == 'ex01' or \
-                self.ext == 'l01' or self.ext == 'lx01':
-            img = self
-        else:
-            img = self.image_handle
+        img = self
+
         # print('[+] Recursing through files..')
         recursed_data = []
         fs = None
@@ -169,8 +136,10 @@ class Ewf(pytsk3.Img_Info):
                         fs = pytsk3.FS_Info(
                             img, offset=part.start * vol.info.block_size)
                     except IOError:
-                        _, e, _ = exc_info()
+                        # TODO: Implement logger
+                        # _, e, _ = exc_info()
                         # print('[-] Unable to open FS:\n {}'.format(e))
+                        pass
                     root = fs.open_dir(path='/')
                     data = self.recurse_files(part.addr, fs, root, [], [],
                                               [''], search)
@@ -180,8 +149,10 @@ class Ewf(pytsk3.Img_Info):
             try:
                 fs = pytsk3.FS_Info(img)
             except IOError:
-                _, e, _ = exc_info()
+                # TODO: Implement logger
+                # _, e, _ = exc_info()
                 # print('[-] Unable to open FS:\n {}'.format(e))
+                pass
             root = fs.open_dir(path='/')
             data = self.recurse_files(1, fs, root, [], [], [''], search)
             recursed_data.append(data)
@@ -258,7 +229,7 @@ class Ewf(pytsk3.Img_Info):
 
 class EwfInfoMenu(object):
     def __init__(self):
-        self.logger = Logging(self.__class__.__name__).logger
+        pass
 
     @staticmethod
     def menu(store):
@@ -281,3 +252,34 @@ class EwfInfoMenu(object):
             menu_items.append(('', ''))
 
         return menu_items
+
+
+if __name__ == '__main__':
+    store = Store()
+    store.image_store.dispatch(
+        {
+            'type': 'set_image',
+            'image': '/Users/Mies/Downloads/FAT.dd'
+        }
+    )
+
+    ewf = Ewf(store.image_store)
+
+    volume = ewf.info()
+
+    menu_items = [
+        ('Amount of partitions: {}'.format(volume.info.part_count), ''),
+        ('', '')]
+
+    for part in volume:
+        menu_items.append(('Partition address: {}'.format(part.addr), ''))
+        menu_items.append(('Partition start: {}'.format(part.start), ''))
+        menu_items.append(('Partition length (relative): {}'.format(
+            part.start + part.len - 1), ''))
+        menu_items.append(('Partition length: {}'.format(part.len), ''))
+        menu_items.append(('Partition description: {}'.format(
+            part.desc.decode('UTF-8')), ''))
+
+        menu_items.append(('', ''))
+
+    print("\n".join([x[0] + x[1] for x in menu_items]))
