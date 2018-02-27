@@ -232,8 +232,8 @@ class EwfInfoMenu(object):
         pass
 
     @staticmethod
-    def menu(store):
-        ewf = Ewf(store)
+    def menu():
+        ewf = Ewf()
         volume = ewf.info()
 
         menu_items = [
