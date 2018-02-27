@@ -6,17 +6,16 @@ from asciimatics.widgets import Frame, Layout, FileBrowser, Widget, Label, \
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
 from asciimatics.exceptions import ResizeScreenError, StopApplication
-
-global_store = None
+from Utils.Store import Store
 
 
 class FilepickerFrame(Frame):
-    def __init__(self, screen, store):
+    def __init__(self, screen):
         super(FilepickerFrame, self).__init__(
             screen, screen.height, screen.width, has_border=False,
             name="Filepicker")
 
-        self.store = store
+        self.store = Store().image_store
 
         # Create the form layout...
         layout = Layout([1], fill_frame=True)
@@ -56,15 +55,11 @@ class FilepickerFrame(Frame):
 
 
 def filepicker(screen, old_scene):
-    global global_store
-    screen.play([Scene([FilepickerFrame(screen, global_store)], -1)],
+    screen.play([Scene([FilepickerFrame(screen)], -1)],
                 stop_on_resize=True, start_scene=old_scene)
 
 
-def filepicker_main(store):
-    global global_store
-    global_store = store
-
+def filepicker_main():
     last_scene = None
     while True:
         try:

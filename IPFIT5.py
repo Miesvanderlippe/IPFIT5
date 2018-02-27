@@ -12,13 +12,10 @@ from Utils.Store import Store
 
 from Utils.Menu import Menu
 
-global_stores = Store()
-
 
 class MainApp(object):
     def __init__(self, stdscreen):
-        global global_stores
-        self.stores = global_stores
+        self.stores = Store()
         self.image_picker = None
         self.image = None
         self.screen = stdscreen
@@ -48,7 +45,7 @@ class MainApp(object):
         main_menu.display()
 
     def filepicker(self):
-        image_filepicker(self.stores.image_store)
+        image_filepicker()
         curses.wrapper(MainApp)
 
 
