@@ -62,9 +62,9 @@ class LogEntryModel:
         Gets a neutral string representing the log entry
         :return: The log entry as a string
         """
-        return "{0} - {1: %d:%m:%Y %H:%M:%S} {2} {3} {4} {5} {6} {7}".format(
-            self.resultType, self.when, self.where, self.who, self.what,
-            self.method, self.using, self.module
+        return "[{0}] {1} {2} {3} {4} {5}".format(
+            self.module, self.where, self.who, self.what, self.method,
+            self.using
         )
 
     def __str__(self) -> str:
