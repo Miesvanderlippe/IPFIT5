@@ -21,6 +21,8 @@ class Ewf(pytsk3.Img_Info):
         self.search_result = None
         self.sha_sum = None
 
+        super().__init__(self.store.get_state())
+
     def info(self) -> pytsk3.Volume_Info:
         self.image_handle = pytsk3.Img_Info(url=self.store.get_state())
         volume = pytsk3.Volume_Info(self.image_handle)
