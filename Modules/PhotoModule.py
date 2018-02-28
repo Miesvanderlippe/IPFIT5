@@ -39,4 +39,3 @@ if __name__ == '__main__':
     ewf = Ewf()
     data = ewf.files()
     PhotoModule.write_csv(data, "files.csv")
-
