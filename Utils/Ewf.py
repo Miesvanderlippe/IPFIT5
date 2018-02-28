@@ -230,11 +230,11 @@ class Ewf(pytsk3.Img_Info):
 
 
 class EwfInfoMenu(object):
-    def __init__(self) -> str:
+    def __init__(self) -> None:
         pass
 
     @staticmethod
-    def menu() -> [(str, function)]:
+    def menu() -> []:
         ewf = Ewf()
         volume = ewf.info()
 

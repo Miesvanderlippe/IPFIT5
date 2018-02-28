@@ -6,7 +6,7 @@ import csv
 
 class PhotoModule(ModuleInterface):
 
-    def __init__(self) -> str:
+    def __init__(self) -> None:
         super().__init__()
 
     @staticmethod
