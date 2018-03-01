@@ -40,4 +40,3 @@ if __name__ == '__main__':
     log1.result = "Log tested succesfully"
 
     logger.write_log(log1)
-
