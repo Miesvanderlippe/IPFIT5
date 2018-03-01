@@ -20,6 +20,7 @@ class Ewf(pytsk3.Img_Info):
         self.block_size = 0
         self.search_result = None
         self.sha_sum = None
+        self.tables_to_ignore = ['Unallocated', 'Extended', 'Primary Table']
 
         super().__init__(self.store.get_state())
 
@@ -56,10 +57,13 @@ class Ewf(pytsk3.Img_Info):
         # Open FS and Recurse
         if vol is not None:
             for part in vol:
-                if part.len > 2048 and 'Unallocated' not in part.desc.decode(
-                        'UTF-8') and 'Extended' not in part.desc.decode(
-                        'UTF-8') and 'Primary Table' not in part.desc.decode(
-                        'UTF-8'):
+                description = part.desc.decode('UTF-8')
+
+                if part.len > 2048 and not any(
+                        table for
+                        table in self.tables_to_ignore
+                        if table in description
+                ):
                     try:
                         fs = pytsk3.FS_Info(
                             img, offset=part.start * vol.info.block_size)
@@ -130,10 +134,13 @@ class Ewf(pytsk3.Img_Info):
         # Open FS and Recurse
         if vol is not None:
             for part in vol:
-                if part.len > 2048 and 'Unallocated' not in part.desc.decode(
-                        'UTF-8') and 'Extended' not in part.desc.decode(
-                        'UTF-8') and 'Primary Table' not in part.desc.decode(
-                        'UTF-8'):
+                description = part.desc.decode('UTF-8')
+
+                if part.len > 2048 and not any(
+                        table for
+                        table in self.tables_to_ignore
+                        if table in description
+                ):
                     try:
                         fs = pytsk3.FS_Info(
                             img, offset=part.start * vol.info.block_size)
@@ -230,11 +237,11 @@ class Ewf(pytsk3.Img_Info):
 
 
 class EwfInfoMenu(object):
-    def __init__(self) -> str:
+    def __init__(self) -> None:
         pass
 
     @staticmethod
-    def menu() -> [(str, function)]:
+    def menu() -> []:
         ewf = Ewf()
         volume = ewf.info()
 
@@ -273,7 +280,7 @@ if __name__ == '__main__':
         ('Amount of partitions: {}'.format(volume.info.part_count), ''),
         ('', '')]
 
-    print(ewf.search_file('*'))
+    print(ewf.files())
 
     for part in volume:
         menu_items.append(('Partition address: {}'.format(part.addr), ''))
