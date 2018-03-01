@@ -11,8 +11,8 @@ class Store(metaclass=Singleton):
     def credential(state: str, action: [str, str]) -> str:
         if state is None:
             state = {
-                'name': '',
-                'location': ''
+                'name': 'Default',
+                'location': 'Default location (None specified)'
             }
         if action is None:
             return state
