@@ -2,10 +2,12 @@ import pytsk3
 
 from re import match
 from hashlib import sha256
-from sys import setrecursionlimit  # , exc_info (used in logger later on)
+from sys import setrecursionlimit, exc_info
 from pathlib import Path as PathlibPath
 from datetime import datetime
 from Utils.Store import Store
+from Utils.Logger import ExtendedLogger
+from Models.LogEntryModel import LogEntryModel
 
 
 class Ewf(pytsk3.Img_Info):
@@ -13,6 +15,8 @@ class Ewf(pytsk3.Img_Info):
         self.store = Store().image_store
 
         setrecursionlimit(100000)
+
+        self.logger = ExtendedLogger(__class__.__name__)
 
         self.image_handle = None
 
@@ -64,10 +68,13 @@ class Ewf(pytsk3.Img_Info):
                         fs = pytsk3.FS_Info(
                             img, offset=part.start * vol.info.block_size)
                     except IOError:
-                        # TODO: Implement logger
-                        # _, e, _ = exc_info()
-                        # print('[-] Unable to open FS:\n {}'.format(e))
-                        pass
+                        _, e, _ = exc_info()
+                        self.logger.write_log(LogEntryModel.create_logentry(
+                            LogEntryModel.ResultType.error, "System", "Fault",
+                            "<<location>>", "<<reason>>", "Opening FS info",
+                            __class__.__name__,
+                            'Unable to open FS:\n {}'.format(e),
+                            __class__.__name__))
                     try:
                         root = fs.open_dir(path=path)
                     except OSError:
@@ -76,10 +83,13 @@ class Ewf(pytsk3.Img_Info):
             try:
                 fs = pytsk3.FS_Info(img)
             except IOError:
-                # TODO: Implement logger
-                # _, e, _ = exc_info()
-                # print('[-] Unable to open FS:\n {}'.format(e))
-                pass
+                _, e, _ = exc_info()
+                self.logger.write_log(LogEntryModel.create_logentry(
+                    LogEntryModel.ResultType.error, "System", "Fault",
+                    "<<location>>", "<<reason>>", "Opening FS info",
+                    __class__.__name__,
+                    'Unable to open FS:\n {}'.format(e),
+                    __class__.__name__))
             root = fs.open_dir(path=path)
 
         for fs_object in root:
@@ -124,7 +134,6 @@ class Ewf(pytsk3.Img_Info):
         vol = self.info()
         img = self
 
-        # print('[+] Recursing through files..')
         recursed_data = []
         fs = None
         # Open FS and Recurse
@@ -138,10 +147,13 @@ class Ewf(pytsk3.Img_Info):
                         fs = pytsk3.FS_Info(
                             img, offset=part.start * vol.info.block_size)
                     except IOError:
-                        # TODO: Implement logger
-                        # _, e, _ = exc_info()
-                        # print('[-] Unable to open FS:\n {}'.format(e))
-                        pass
+                        _, e, _ = exc_info()
+                        self.logger.write_log(LogEntryModel.create_logentry(
+                            LogEntryModel.ResultType.error, "System", "Fault",
+                            "<<location>>", "<<reason>>", "Opening FS info",
+                            __class__.__name__,
+                            'Unable to open FS:\n {}'.format(e),
+                            __class__.__name__))
                     root = fs.open_dir(path='/')
                     data = self.recurse_files(part.addr, fs, root, [], [],
                                               [''], search)
@@ -151,9 +163,13 @@ class Ewf(pytsk3.Img_Info):
             try:
                 fs = pytsk3.FS_Info(img)
             except IOError:
-                # TODO: Implement logger
-                # _, e, _ = exc_info()
-                # print('[-] Unable to open FS:\n {}'.format(e))
+                _, e, _ = exc_info()
+                self.logger.write_log(LogEntryModel.create_logentry(
+                    LogEntryModel.ResultType.error, "System", "Fault",
+                    "<<location>>", "<<reason>>", "Opening FS info",
+                    __class__.__name__,
+                    'Unable to open FS:\n {}'.format(e),
+                    __class__.__name__))
                 pass
             root = fs.open_dir(path='/')
             data = self.recurse_files(1, fs, root, [], [], [''], search)
@@ -163,7 +179,6 @@ class Ewf(pytsk3.Img_Info):
 
     def recurse_files(self, part, fs, root_dir, dirs, data, parent,
                       search=None):
-        # print('Recurse')
         dirs.append(root_dir.info.fs_file.meta.addr)
         for fs_object in root_dir:
             # Skip '.', '..' or directory entries without a name.
