@@ -54,11 +54,13 @@ class LogEntryModel:
         :return: A log entry
         """
 
+        print(result_type)
+
         entry = LogEntryModel()
 
-        entry.who = who
+        entry.who = [entry.who, who][len(who) > 0]
         entry.what = what
-        entry.where = where
+        entry.where = [entry.where, where][len(where) > 0]
         entry.why = why
         entry.method = method
         entry.using = using
@@ -91,8 +93,9 @@ class LogEntryModel:
         elif self.resultType == self.ResultType.positive:
             color_prefix += "42m"
 
-        return (color_prefix + base_format).format(self.resultType, self.when,
-                                                   self.what, self.result)
+        return (color_prefix + base_format + '\x1b[0m').format(
+            self.resultType, self.when, self.what, self.result
+        )
 
     def get_message(self) -> str:
         """
@@ -123,6 +126,14 @@ if __name__ == '__main__':
     log1.using = "Logger"
     log1.result = "Log tested succesfully"
 
+    print(LogEntryModel.create_logentry(
+        LogEntryModel.ResultType.informative,
+        "",
+        "",
+        "Test"
+    )
+    )
+
     print(log1.get_display_message())
 
     log1.resultType = LogEntryModel.ResultType.negative
@@ -133,3 +144,5 @@ if __name__ == '__main__':
 
     log1.resultType = LogEntryModel.ResultType.positive
     print(log1.get_display_message())
+
+
