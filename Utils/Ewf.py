@@ -1,207 +1,191 @@
 import pytsk3
 
-from re import match
+from re import search, I
 from hashlib import sha256
 from sys import setrecursionlimit, exc_info
 from pathlib import Path as PathlibPath
 from datetime import datetime
+
 from Utils.Store import Store
-from Utils.Logger import ExtendedLogger
-from Models.LogEntryModel import LogEntryModel
 
 
 class Ewf(pytsk3.Img_Info):
-    def __init__(self) -> None:
+    def __init__(self, ):
         self.store = Store().image_store
 
         setrecursionlimit(100000)
 
-        self.logger = ExtendedLogger(__class__.__name__)
-
         self.image_handle = None
 
         self.ext = PathlibPath(self.store.get_state()).suffix.lower()[1:]
-        self.block_size = 0
         self.search_result = None
-        self.sha_sum = None
-        self.tables_to_ignore = ['Unallocated', 'Extended', 'Primary Table']
 
-        super().__init__(self.store.get_state())
+    def close(self):
+        self.ewf_handle.close()
 
-    def info(self) -> pytsk3.Volume_Info:
+    def read(self, offset, size):
+        self.ewf_handle.seek(offset)
+        return self.ewf_handle.read(size)
+
+    def check_file_path(self):
+        my_file = PathlibPath(self.store.get_state())
+        return my_file.is_file()
+
+    def check_file(self):
+        try:
+            self.info()
+        except OSError:
+            return False
+        return True
+
+    def info(self):
         self.image_handle = pytsk3.Img_Info(url=self.store.get_state())
         volume = pytsk3.Volume_Info(self.image_handle)
 
-        self.block_size = volume.info.block_size
         return volume
 
+    def volume_info(self):
+        volume = self.info()
+
+        volume_info = [
+            'Volume information',
+            '',
+            '- Amount of partitions: {}'.format(volume.info.part_count),
+            ''
+        ]
+
+        for part in volume:
+            volume_info.append('- Partition address: {}'.format(part.addr))
+            volume_info.append('- Partition start: {}'.format(part.start))
+            volume_info.append(
+                '- Partition length (relative): {}'.format(
+                    part.start + part.len - 1))
+            volume_info.append('- Partition length: {}'.format(part.len))
+            volume_info.append(
+                '- Partition description: {}'.format(
+                    part.desc.decode('UTF-8')))
+            volume_info.append('')
+
+        return volume_info[:-1]
+
     @staticmethod
-    def rreplace(s: str, old: str, new: str) -> str:
+    def rreplace(s, old, new):
         return (s[::-1].replace(old[::-1], new[::-1], 1))[::-1]
 
-    def hash_file(self, filename: str, path: str) -> str:
-        self.file(path, filename, True)
-        sha_sum = self.sha_sum
-        self.sha_sum = None
+    @staticmethod
+    def partition_check(part):
+        tables_to_ignore = ['Unallocated', 'Extended', 'Primary Table']
+        decoded = part.desc.decode('UTF-8')
 
-        return sha_sum
+        return part.len > 2048 and not any(
+            table for
+            table in tables_to_ignore
+            if table in decoded
+        )
 
-    def search_file(self, search: str):
-        self.files(search)
-        search_result = self.search_result
-        self.search_result = None
-
-        return search_result
-
-    def file(self, path: str, filename: str, hashing=False):
+    def get_handle(self):
         vol = self.info()
-        img = self
-        fs = None
-        root = None
-        # Open FS and Recurse
-        if vol is not None:
-            for part in vol:
-                description = part.desc.decode('UTF-8')
+        img = self.image_handle
 
-                if part.len > 2048 and not any(
-                        table for
-                        table in self.tables_to_ignore
-                        if table in description
-                ):
-                    try:
-                        fs = pytsk3.FS_Info(
-                            img, offset=part.start * vol.info.block_size)
-                    except IOError:
-                        _, e, _ = exc_info()
-                        self.logger.write_log(LogEntryModel.create_logentry(
-                            LogEntryModel.ResultType.error, "System", "Fault",
-                            "<<location>>", "<<reason>>", "Opening FS info",
-                            __class__.__name__,
-                            'Unable to open FS:\n {}'.format(e),
-                            __class__.__name__))
-                    try:
-                        root = fs.open_dir(path=path)
-                    except OSError:
-                        return
-        else:
-            try:
-                fs = pytsk3.FS_Info(img)
-            except IOError:
-                _, e, _ = exc_info()
-                self.logger.write_log(LogEntryModel.create_logentry(
-                    LogEntryModel.ResultType.error, "System", "Fault",
-                    "<<location>>", "<<reason>>", "Opening FS info",
-                    __class__.__name__,
-                    'Unable to open FS:\n {}'.format(e),
-                    __class__.__name__))
+        return vol, img
+
+    @staticmethod
+    def open_fs_single_vol(img, path):
+        try:
+            fs = pytsk3.FS_Info(img)
             root = fs.open_dir(path=path)
 
-        for fs_object in root:
-            if not hasattr(fs_object, 'info') \
-                    or not hasattr(fs_object.info, 'name') or not hasattr(
-                    fs_object.info.name, 'name') or \
-                    fs_object.info.name.name.decode('UTF-8') in ['.', '..']:
-                continue
-            try:
-                if fs_object.info.name.name.decode('UTF-8') == filename:
-                    if not hashing:
-                        return fs_object
-                    else:
-                        if fs_object.info.meta.type == \
-                                pytsk3.TSK_FS_META_TYPE_DIR:
-                            self.sha_sum = ''
-                            return
+            return fs, root
+        except IOError:
+            _, e, _ = exc_info()
+            print('[-] Unable to open FS:\n {}'.format(e))
+
+            return None, None
+
+    @staticmethod
+    def open_fs(img, vol, path, part):
+        try:
+            fs = pytsk3.FS_Info(
+                img, offset=part.start * vol.info.block_size)
+            root = fs.open_dir(path=path)
+
+            return fs, root
+        except IOError:
+            _, e, _ = exc_info()
+            print('[-] Unable to open FS:\n {}'.format(e))
+
+            return None, None
+
+    @staticmethod
+    def nameless_dir(fs_object):
+        return not hasattr(fs_object, 'info') \
+            or not hasattr(fs_object.info, 'name') or not hasattr(
+            fs_object.info.name, 'name') or \
+            fs_object.info.name.name.decode('UTF-8') in ['.', '..']
+
+    def single_file(self, partition, path, filename, hashing=False):
+        vol, img = self.get_handle()
+        fs, root = None, None
+
+        if vol is not None:
+            all_partitions = [x for x in vol]
+            part = all_partitions[partition]
+            if self.partition_check(part):
+                fs, root = self.open_fs(img, vol, path, part)
+        else:
+            fs, root = self.open_fs_single_vol(img, path)
+
+        if fs is not None and root is not None:
+            for fs_object in root:
+                if self.nameless_dir(fs_object):
+                    continue
+
+                try:
+                    file_name = fs_object.info.name.name.decode('UTF-8')
+
+                    if file_name.lower() == filename.lower():
+                        if hashing:
+                            return self.hash_file(fs_object)
                         else:
-                            offset = 0
-                            size = fs_object.info.meta.size
-                            buff_size = 1024 * 1024
+                            return fs_object
 
-                            sha256_sum = sha256()
-                            while offset < size:
-                                available_to_read = min(buff_size, size -
-                                                        offset)
-                                data = fs_object.read_random(
-                                    offset, available_to_read)
-                                if not data:
-                                    break
-
-                                offset += len(data)
-                                sha256_sum.update(data)
-                            self.sha_sum = sha256_sum.hexdigest()
-                        return
-            except IOError:
-                pass
+                except IOError:
+                    pass
 
         return None
 
-    def files(self, search: str=None):
-        vol = self.info()
-        img = self
-
+    def files(self, search_str=None):
+        vol, img = self.get_handle()
         recursed_data = []
-        fs = None
+
         # Open FS and Recurse
         if vol is not None:
             for part in vol:
-                description = part.desc.decode('UTF-8')
-
-                if part.len > 2048 and not any(
-                        table for
-                        table in self.tables_to_ignore
-                        if table in description
-                ):
-                    try:
-                        fs = pytsk3.FS_Info(
-                            img, offset=part.start * vol.info.block_size)
-                    except IOError:
-                        _, e, _ = exc_info()
-                        self.logger.write_log(LogEntryModel.create_logentry(
-                            LogEntryModel.ResultType.error, "System", "Fault",
-                            "<<location>>", "<<reason>>", "Opening FS info",
-                            __class__.__name__,
-                            'Unable to open FS:\n {}'.format(e),
-                            __class__.__name__))
-                    root = fs.open_dir(path='/')
-                    data = self.recurse_files(part.addr, fs, root, [], [],
-                                              [''], search)
-                    recursed_data.append(data)
-
+                if self.partition_check(part):
+                    fs, root = self.open_fs(img, vol, '/', part)
+                    if fs is not None and root is not None:
+                        data = self.recurse_files(part.addr, fs, root, [],
+                                                  [], [''], search_str)
+                        recursed_data.append(data)
         else:
-            try:
-                fs = pytsk3.FS_Info(img)
-            except IOError:
-                _, e, _ = exc_info()
-                self.logger.write_log(LogEntryModel.create_logentry(
-                    LogEntryModel.ResultType.error, "System", "Fault",
-                    "<<location>>", "<<reason>>", "Opening FS info",
-                    __class__.__name__,
-                    'Unable to open FS:\n {}'.format(e),
-                    __class__.__name__))
-                pass
-            root = fs.open_dir(path='/')
-            data = self.recurse_files(1, fs, root, [], [], [''], search)
-            recursed_data.append(data)
+            fs, root = self.open_fs_single_vol(img, '/')
+            if fs is not None and root is not None:
+                data = self.recurse_files(1, fs, root, [], [], [''],
+                                          search_str)
+                recursed_data.append(data)
 
         return recursed_data
 
     def recurse_files(self, part, fs, root_dir, dirs, data, parent,
-                      search=None):
+                      search_str=None):
+        # print('Recurse')
         dirs.append(root_dir.info.fs_file.meta.addr)
         for fs_object in root_dir:
             # Skip '.', '..' or directory entries without a name.
-            if not hasattr(fs_object, 'info') \
-                    or not hasattr(fs_object.info, 'name') or not hasattr(
-                fs_object.info.name, 'name') or \
-                    fs_object.info.name.name.decode('UTF-8') in ['.', '..']:
+            if self.nameless_dir(fs_object):
                 continue
             try:
                 file_name = fs_object.info.name.name.decode('UTF-8')
-                if search:
-                    search_result = match(search, file_name)
-                    if search_result:
-                        self.search_result = fs_object
-                        return
-
                 file_path = '{}/{}'.format(
                     '/'.join(parent),
                     fs_object.info.name.name.decode('UTF-8'))
@@ -219,13 +203,16 @@ class Ewf(pytsk3.Img_Info):
                 except AttributeError:
                     continue
 
-                size = fs_object.info.meta.size
-                create = self.convert_time(fs_object.info.meta.crtime)
-                change = self.convert_time(fs_object.info.meta.ctime)
-                modify = self.convert_time(fs_object.info.meta.mtime)
-                data.append(
-                    ['PARTITION {}'.format(part), file_name, file_ext, f_type,
-                     create, change, modify, size, file_path])
+                if search_str is None or search(search_str, file_name,
+                                                I) is not None:
+                    size = fs_object.info.meta.size
+                    create = self.convert_time(fs_object.info.meta.crtime)
+                    change = self.convert_time(fs_object.info.meta.ctime)
+                    modify = self.convert_time(fs_object.info.meta.mtime)
+
+                    data.append(
+                        ['PARTITION {}'.format(part), file_name, file_ext,
+                         f_type, create, change, modify, size, file_path])
 
                 if f_type == 'DIR':
                     parent.append(fs_object.info.name.name.decode('UTF-8'))
@@ -235,8 +222,8 @@ class Ewf(pytsk3.Img_Info):
                     # This ensures that we don't recurse into a directory
                     # above the current level and thus avoid circular loops.
                     if inode not in dirs:
-                        self.recurse_files(part, fs, sub_directory, dirs,
-                                           data, parent, search)
+                        self.recurse_files(part, fs, sub_directory,
+                                           dirs, data, parent, search_str)
                     parent.pop(-1)
 
             except IOError:
@@ -245,37 +232,27 @@ class Ewf(pytsk3.Img_Info):
         return data
 
     @staticmethod
+    def hash_file(fs_object):
+        offset = 0
+        buff_size = 1024 * 1024
+        size = getattr(fs_object.info.meta, "size", 0)
+
+        sha256_sum = sha256()
+        while offset < size:
+            available_to_read = min(buff_size, size - offset)
+            data = fs_object.read_random(offset, available_to_read)
+            if not data:
+                break
+
+            offset += len(data)
+            sha256_sum.update(data)
+        return sha256_sum.hexdigest()
+
+    @staticmethod
     def convert_time(ts):
         if str(ts) == '0':
             return ''
         return datetime.utcfromtimestamp(ts)
-
-
-class EwfInfoMenu(object):
-    def __init__(self) -> None:
-        pass
-
-    @staticmethod
-    def menu() -> []:
-        ewf = Ewf()
-        volume = ewf.info()
-
-        menu_items = [
-            ('Amount of partitions: {}'.format(volume.info.part_count), ''),
-            ('', '')]
-
-        for part in volume:
-            menu_items.append(('Partition address: {}'.format(part.addr), ''))
-            menu_items.append(('Partition start: {}'.format(part.start), ''))
-            menu_items.append(('Partition length (relative): {}'.format(
-                part.start + part.len - 1), ''))
-            menu_items.append(('Partition length: {}'.format(part.len), ''))
-            menu_items.append(('Partition description: {}'.format(
-                part.desc.decode('UTF-8')), ''))
-
-            menu_items.append(('', ''))
-
-        return menu_items
 
 
 if __name__ == '__main__':
@@ -296,16 +273,5 @@ if __name__ == '__main__':
         ('', '')]
 
     print(ewf.files())
-
-    for part in volume:
-        menu_items.append(('Partition address: {}'.format(part.addr), ''))
-        menu_items.append(('Partition start: {}'.format(part.start), ''))
-        menu_items.append(('Partition length (relative): {}'.format(
-            part.start + part.len - 1), ''))
-        menu_items.append(('Partition length: {}'.format(part.len), ''))
-        menu_items.append(('Partition description: {}'.format(
-            part.desc.decode('UTF-8')), ''))
-
-        menu_items.append(('', ''))
-
+    print(ewf.volume_info())
     print("\n".join([x[0] + x[1] for x in menu_items]))
