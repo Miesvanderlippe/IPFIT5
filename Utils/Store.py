@@ -12,14 +12,23 @@ class Store(metaclass=Singleton):
         if state is None:
             state = {
                 'name': 'Default',
-                'location': 'Default location (None specified)'
+                'location': 'Default location (None specified)',
+                'case': '001'
             }
         if action is None:
             return state
+        elif action == 'set_credentials':
+            state = {
+                'name': action['credentials']['name'],
+                'location': action['credentials']['location'],
+                'case': action['credentials']['case'],
+            }
         elif action['type'] == 'set_location':
             state['location'] = action['location']
         elif action['type'] == 'set_name':
             state['location'] = action['name']
+        elif action['type'] == 'set_case':
+            state['case'] = action['case']
         return state
 
     @staticmethod
