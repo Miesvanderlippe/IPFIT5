@@ -142,5 +142,3 @@ if __name__ == '__main__':
 
     log1.resultType = LogEntryModel.ResultType.positive
     print(log1.get_display_message())
-
-

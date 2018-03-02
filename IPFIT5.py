@@ -142,7 +142,7 @@ class MainApp(Frame):
                             'name': form_state['name'],
                             'case': form_state['case'],
                             'location': form_state['location'],
-                        }
+                    }
                 })
             changed = True
 

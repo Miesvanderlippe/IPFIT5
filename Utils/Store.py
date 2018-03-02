@@ -39,7 +39,8 @@ class Store(metaclass=Singleton):
         """
         with open(path, 'w') as file:
             file.writelines(
-                linesep.join([str(x) + ":" + str(y) for x, y in config.items()])
+                linesep.join([str(x) + ":" + str(y)
+                              for x, y in config.items()])
             )
 
     @staticmethod
