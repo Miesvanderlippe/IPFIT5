@@ -35,6 +35,39 @@ class LogEntryModel:
         # result
         self.resultType = LogEntryModel.ResultType.informative
 
+    @staticmethod
+    def create_logentry(result_type, who: str="", what: str="", where: str="",
+                        why: str="", method: str="", using: str="",
+                        result: str="", module: str=""):
+        """
+        Creates a logentry using the parameters given. Shorter than creating an
+        instance and filling it.
+        :param result_type:
+        :param who:
+        :param what:
+        :param where:
+        :param why:
+        :param method:
+        :param using:
+        :param result:
+        :param module:
+        :return: A log entry
+        """
+
+        entry = LogEntryModel()
+
+        entry.who = who
+        entry.what = what
+        entry.where = where
+        entry.why = why
+        entry.method = method
+        entry.using = using
+        entry.result = result
+        entry.module = module
+        entry.resultType = result_type
+
+        return entry
+
     class ResultType:
         positive = "[+]"
         negative = "[-]"
