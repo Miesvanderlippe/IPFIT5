@@ -54,8 +54,6 @@ class LogEntryModel:
         :return: A log entry
         """
 
-        print(result_type)
-
         entry = LogEntryModel()
 
         entry.who = [entry.who, who][len(who) > 0]
