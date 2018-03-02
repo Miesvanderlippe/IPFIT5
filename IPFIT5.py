@@ -39,13 +39,13 @@ class MainApp(Frame):
         current_state = {**credential_state}
 
         super(MainApp, self).__init__(
-          screen,
-          int(screen.height * 2 // 3),
-          int(screen.width * 2 // 3),
-          data=current_state,
-          has_shadow=True,
-          name="IPFIT5",
-          can_scroll=False
+            screen,
+            int(screen.height * 2 // 3),
+            int(screen.width * 2 // 3),
+            data=current_state,
+            has_shadow=True,
+            name="IPFIT5",
+            can_scroll=False
         )
 
         # Store related stuff
@@ -158,9 +158,9 @@ class MainApp(Frame):
         self._scene.add_effect(
             PopUpDialog(
                 self._screen,
-                    "Are you sure?",
-                    ["Yes", "No"],
-                    on_close=self._quit_on_yes))
+                "Are you sure?",
+                ["Yes", "No"],
+                on_close=self._quit_on_yes))
 
     @staticmethod
     def _quit_on_yes(selected):
