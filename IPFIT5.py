@@ -126,10 +126,10 @@ class MainApp(Frame):
             PopUpDialog(self._screen, message, ["OK"]))
 
     def _on_change(self):
+        self.save()
         changed = False
         cred_state = self.stores.credential_store.get_state()
         form_state = {x[0]: x[1] for x in self.data.items()}
-        self.save()
 
         if any([
             x for x in ["name", "location", "case"]
