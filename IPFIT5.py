@@ -20,8 +20,8 @@ from asciimatics.widgets import Frame, Layout, Label, Text, \
 # from asciimatics.event import MouseEvent
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
-from asciimatics.exceptions import ResizeScreenError, NextScene, StopApplication, \
-    InvalidFields
+from asciimatics.exceptions import ResizeScreenError, NextScene, \
+    StopApplication, InvalidFields
 import sys
 # import re
 # import datetime
@@ -38,13 +38,15 @@ class MainApp(Frame):
         credential_state = self.stores.credential_store.get_state()
         current_state = {**credential_state}
 
-        super(MainApp, self).__init__(screen,
-                                      int(screen.height * 2 // 3),
-                                      int(screen.width * 2 // 3),
-                                      data=current_state,
-                                      has_shadow=True,
-                                      name="IPFIT5",
-                                      can_scroll=False)
+        super(MainApp, self).__init__(
+          screen,
+          int(screen.height * 2 // 3),
+          int(screen.width * 2 // 3),
+          data=current_state,
+          has_shadow=True,
+          name="IPFIT5",
+          can_scroll=False
+        )
 
         # Store related stuff
         self.image_picker = None
@@ -139,9 +141,9 @@ class MainApp(Frame):
                 {
                     'type': 'set_credentials',
                     'credentials': {
-                            'name': form_state['name'],
-                            'case': form_state['case'],
-                            'location': form_state['location'],
+                        'name': form_state['name'],
+                        'case': form_state['case'],
+                        'location': form_state['location'],
                     }
                 })
             changed = True
@@ -154,10 +156,11 @@ class MainApp(Frame):
 
     def _quit(self):
         self._scene.add_effect(
-            PopUpDialog(self._screen,
-                        "Are you sure?",
-                        ["Yes", "No"],
-                        on_close=self._quit_on_yes))
+            PopUpDialog(
+                self._screen,
+                    "Are you sure?",
+                    ["Yes", "No"],
+                    on_close=self._quit_on_yes))
 
     @staticmethod
     def _quit_on_yes(selected):
