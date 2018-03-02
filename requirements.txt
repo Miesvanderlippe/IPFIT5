@@ -1,3 +1,3 @@
-asciimatics
+git+https://github.com/peterbrittain/asciimatics.git
 pydux
 pytsk3
