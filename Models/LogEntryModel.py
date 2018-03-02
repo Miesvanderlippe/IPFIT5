@@ -1,4 +1,5 @@
 from datetime import datetime
+from Utils.Store import Store
 
 
 class LogEntryModel:
@@ -9,14 +10,17 @@ class LogEntryModel:
     """
 
     def __init__(self) -> None:
+
+        store = Store()
+
         # When the event happened
         self.when = datetime.now()
         # Who started the event
-        self.who = ""
+        self.who = store.credential_store.get_state()["name"]
         # What's happening
         self.what = ""
         # Where it happened
-        self.where = ""
+        self.where = store.credential_store.get_state()["location"]
         # Why it's happening
         self.why = ""
         # How we're doing we're doing it
