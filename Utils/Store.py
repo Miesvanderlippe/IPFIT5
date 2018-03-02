@@ -12,7 +12,7 @@ class Store(metaclass=Singleton):
         self.credential_store = pydux.create_store(self.credential)
 
     @staticmethod
-    def get_config_save_path(type: str) -> Path:
+    def get_config_save_path(config: str) -> Path:
         """
         Generates a path in the root of the project where a config path can be
         saved. It makes the directory if it doesn't exist yet and creates the
@@ -20,12 +20,13 @@ class Store(metaclass=Singleton):
         :param type: The config name
         :return: A Path object pointing to the correct log path
         """
+
         # Make config folder
         config_path = Path(__file__).parent.parent.joinpath('Configs')
         Path.mkdir(Path(config_path), exist_ok=True)
 
         # Make config file
-        config_file_path = Path(config_path.joinpath("{0}.cfg".format(type)))
+        config_file_path = Path(config_path.joinpath("{0}.cfg".format(config)))
         Path.touch(config_file_path, exist_ok=True)
 
         return config_file_path
