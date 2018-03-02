@@ -11,6 +11,13 @@ class Store(metaclass=Singleton):
 
     @staticmethod
     def get_config_save_path(type: str) -> Path:
+        """
+        Generates a path in the root of the project where a config path can be
+        saved. It makes the directory if it doesn't exist yet and creates the
+        log file when that doesn't exist yet.
+        :param type: The config name
+        :return: A Path object pointing to the correct log path
+        """
         # Make config folder
         config_path = Path(__file__).parent.parent.joinpath('Configs')
         Path.mkdir(Path(config_path), exist_ok=True)
@@ -23,6 +30,13 @@ class Store(metaclass=Singleton):
 
     @staticmethod
     def write_config_to_disk(path: Path, config: dict) -> None:
+        """
+        Writes the supplied configuration dictionary to the path on disk.
+        NOTE: This doesn't support linebreaks yet.
+        :param path: Path to write to (including specific file)
+        :param config: Configuration to write to disk (key, value)
+        :return: Nothing
+        """
         with open(path, 'w') as file:
             file.writelines(
                 linesep.join([str(x) + ":" + str(y) for x, y in config.items()])
@@ -30,12 +44,26 @@ class Store(metaclass=Singleton):
 
     @staticmethod
     def read_config_from_disk(path: Path, defaults: dict) -> dict:
+        """
+        Fills a config using values found on disk. Supply it with a config path
+        and a defaults dict. Be warned; the defaults dict dictates the keys to
+        be loaded from disk. Any keys not in the defaults dict will NOT be
+        added to the config and will be lost.
+        :param path: Path to config file
+        :param defaults: Dict with keys and defaults for each value
+        :return: A filled config
+        """
         with open(path, 'r') as file:
             lines = {
+                # The first item is the key, the rest is it's value. Join it
+                # back with the colon we split on.
                 split_line[0]: ":".join(split_line[1::]) for split_line in
+                # Strip the linebreak, break on :
                 [line.strip().split(':') for line in file.readlines()]
             }
 
+        # Look trough keys in defaults and check if a better value is
+        # found on disk.
         for key, value in defaults.items():
             if key in lines:
                 defaults[key] = lines[key]
@@ -44,6 +72,33 @@ class Store(metaclass=Singleton):
 
     @staticmethod
     def credential(state: str, action: [str, str]) -> dict:
+        """
+        DO NOT USE THIS DIRECTLY
+        Credential store.
+        Save config to disk:
+        credential_store.dispatch({'type': 'safe_to_disk'}
+
+        Set a specific value:
+        credential_store.dispatch(
+        {
+            'type': 'set_location',
+            'location': 'value'
+        }
+
+        Set all values:
+        credential_store.dispatch(
+        {
+            'type': 'set_credentials',
+            'credentials': {
+                'name': 'value',
+                'case': 'value',
+                'location': 'value',
+            }
+        }
+
+        Get all values:
+        credential_store.get_state()
+        """
         if state is None:
             state = Store.read_config_from_disk(
                 Store.get_config_save_path('credentials'),
@@ -77,6 +132,10 @@ class Store(metaclass=Singleton):
 
     @staticmethod
     def image(state: str, action: [str, str]) -> str:
+        """
+        DO NOT USE THIS DIRECTLY
+        Very simple store for saving the path to the image.
+        """
         if state is None:
             state = 'initial'
         if action is None:
@@ -92,3 +151,7 @@ if __name__ == '__main__':
     print(stores.credential_store.get_state())
 
     stores.credential_store.dispatch({'type': 'safe_to_disk'})
+    stores.credential_store.dispatch({'type': 'set_location',
+                                      'location': 'value'})
+
+    print(stores.credential_store.get_state())
