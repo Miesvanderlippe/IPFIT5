@@ -3,6 +3,8 @@ from Utils.Singleton import Singleton
 from pathlib import Path
 from os import linesep
 
+from typing import Dict, Union
+
 
 class Store(metaclass=Singleton):
     def __init__(self) -> None:
@@ -29,7 +31,7 @@ class Store(metaclass=Singleton):
         return config_file_path
 
     @staticmethod
-    def write_config_to_disk(path: Path, config: dict) -> None:
+    def write_config_to_disk(path: Path, config: Dict[str, str]) -> None:
         """
         Writes the supplied configuration dictionary to the path on disk.
         NOTE: This doesn't support linebreaks yet.
@@ -44,7 +46,8 @@ class Store(metaclass=Singleton):
             )
 
     @staticmethod
-    def read_config_from_disk(path: Path, defaults: dict) -> dict:
+    def read_config_from_disk(path: Path, defaults: Dict[str, str]) -> \
+        Dict[str, str]:
         """
         Fills a config using values found on disk. Supply it with a config path
         and a defaults dict. Be warned; the defaults dict dictates the keys to
@@ -72,7 +75,9 @@ class Store(metaclass=Singleton):
         return defaults
 
     @staticmethod
-    def credential(state: str, action: [str, str]) -> dict:
+    def credential(state: Dict[str, str],
+                   action: Dict[str, Union[Dict[str, str], str]]) \
+            -> Dict[str, str]:
         """
         DO NOT USE THIS DIRECTLY
         Credential store.
@@ -132,7 +137,7 @@ class Store(metaclass=Singleton):
         return state
 
     @staticmethod
-    def image(state: str, action: [str, str]) -> str:
+    def image(state: str, action: Dict[str, str]) -> str:
         """
         DO NOT USE THIS DIRECTLY
         Very simple store for saving the path to the image.
