@@ -124,7 +124,7 @@ class Store(metaclass=Singleton):
             state['location'] = action['name']
         elif action['type'] == 'set_case':
             state['case'] = action['case']
-        elif action['type'] == 'safe_to_disk':
+        elif action['type'] == 'save_to_disk':
             Store.write_config_to_disk(
                 Store.get_config_save_path("credentials"),
                 state
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
     print(stores.credential_store.get_state())
 
-    stores.credential_store.dispatch({'type': 'safe_to_disk'})
+    stores.credential_store.dispatch({'type': 'save_to_disk'})
     stores.credential_store.dispatch({'type': 'set_location',
                                       'location': 'value'})
 
