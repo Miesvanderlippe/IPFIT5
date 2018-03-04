@@ -26,8 +26,8 @@ class Ewf(pytsk3.Img_Info):
         self.ewf_handle.close()
 
     def check_file_path(self) -> bool:
-        my_file = PathlibPath(self.store.get_state())
-        return my_file.is_file()
+        image_path = PathlibPath(self.store.get_state())
+        return image_path.is_file()
 
     def check_file(self) -> bool:
         try:
@@ -39,9 +39,7 @@ class Ewf(pytsk3.Img_Info):
     def info(self) -> pytsk3.Volume_Info:
         # noinspection PyArgumentList
         self.image_handle = pytsk3.Img_Info(url=self.store.get_state())
-        volume = pytsk3.Volume_Info(self.image_handle)
-
-        return volume
+        return pytsk3.Volume_Info(self.image_handle)
 
     def volume_info(self) -> List[Union[str, str]]:
         volume = self.info()
@@ -49,11 +47,11 @@ class Ewf(pytsk3.Img_Info):
         volume_info = [
             'Volume information',
             '',
-            '- Amount of partitions: {}'.format(volume.info.part_count),
-            ''
+            '- Amount of partitions: {}'.format(volume.info.part_count)
         ]
 
         for part in volume:
+            volume_info.append('')
             volume_info.append('- Partition address: {}'.format(part.addr))
             volume_info.append('- Partition start: {}'.format(part.start))
             volume_info.append(
@@ -63,9 +61,8 @@ class Ewf(pytsk3.Img_Info):
             volume_info.append(
                 '- Partition description: {}'.format(
                     part.desc.decode('UTF-8')))
-            volume_info.append('')
 
-        return volume_info[:-1]
+        return volume_info
 
     @staticmethod
     def rreplace(s: str, old: str, new: str) -> str:
@@ -150,11 +147,8 @@ class Ewf(pytsk3.Img_Info):
                     file_name = fs_object.info.name.name.decode('UTF-8')
 
                     if file_name.lower() == filename.lower():
-                        if hashing:
-                            return self.hash_file(fs_object)
-                        else:
-                            return fs_object
-
+                        return self.hash_file(fs_object) if hashing else \
+                            fs_object
                 except IOError:
                     pass
 
@@ -209,14 +203,13 @@ class Ewf(pytsk3.Img_Info):
                         file_ext = ''
                     else:
                         f_type = 'FILE'
-                        if '.' in file_name:
-                            file_ext = file_name.rsplit('.')[-1].lower()
-                        else:
-                            file_ext = ''
+                        file_ext = file_name.rsplit('.')[-1].lower() \
+                            if '.' in file_name else ''
                 except AttributeError:
                     continue
 
-                if search_str is None or search(search_str, file_name,
+                if search_str is None or search(search_str,
+                                                file_name,
                                                 I) is not None:
                     size = fs_object.info.meta.size
                     create = self.convert_time(fs_object.info.meta.crtime)
@@ -263,9 +256,7 @@ class Ewf(pytsk3.Img_Info):
 
     @staticmethod
     def convert_time(ts: float) -> Union[str, datetime]:
-        if str(ts) == '0':
-            return ''
-        return datetime.utcfromtimestamp(ts)
+        return '' if str(ts) == '0' else datetime.utcfromtimestamp(ts)
 
 
 if __name__ == '__main__':
