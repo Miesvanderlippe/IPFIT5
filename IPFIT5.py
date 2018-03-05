@@ -111,7 +111,7 @@ class MainApp(Frame):
         # main_menu.display()
 
     def save_creds_to_disk(self) -> None:
-        self.stores.credential_store.dispatch({'type': 'safe_to_disk'})
+        self.stores.credential_store.dispatch({'type': 'save_to_disk'})
 
     def _view(self):
         # Build result of this form and display it.

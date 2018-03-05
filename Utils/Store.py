@@ -3,6 +3,8 @@ from Utils.Singleton import Singleton
 from pathlib import Path
 from os import linesep
 
+from typing import Dict, Union
+
 
 class Store(metaclass=Singleton):
     def __init__(self) -> None:
@@ -10,7 +12,7 @@ class Store(metaclass=Singleton):
         self.credential_store = pydux.create_store(self.credential)
 
     @staticmethod
-    def get_config_save_path(type: str) -> Path:
+    def get_config_save_path(config: str) -> Path:
         """
         Generates a path in the root of the project where a config path can be
         saved. It makes the directory if it doesn't exist yet and creates the
@@ -18,18 +20,19 @@ class Store(metaclass=Singleton):
         :param type: The config name
         :return: A Path object pointing to the correct log path
         """
+
         # Make config folder
         config_path = Path(__file__).parent.parent.joinpath('Configs')
         Path.mkdir(Path(config_path), exist_ok=True)
 
         # Make config file
-        config_file_path = Path(config_path.joinpath("{0}.cfg".format(type)))
+        config_file_path = Path(config_path.joinpath("{0}.cfg".format(config)))
         Path.touch(config_file_path, exist_ok=True)
 
         return config_file_path
 
     @staticmethod
-    def write_config_to_disk(path: Path, config: dict) -> None:
+    def write_config_to_disk(path: Path, config: Dict[str, str]) -> None:
         """
         Writes the supplied configuration dictionary to the path on disk.
         NOTE: This doesn't support linebreaks yet.
@@ -44,7 +47,8 @@ class Store(metaclass=Singleton):
             )
 
     @staticmethod
-    def read_config_from_disk(path: Path, defaults: dict) -> dict:
+    def read_config_from_disk(path: Path, defaults: Dict[str, str]) -> \
+            Dict[str, str]:
         """
         Fills a config using values found on disk. Supply it with a config path
         and a defaults dict. Be warned; the defaults dict dictates the keys to
@@ -72,12 +76,14 @@ class Store(metaclass=Singleton):
         return defaults
 
     @staticmethod
-    def credential(state: str, action: [str, str]) -> dict:
+    def credential(state: Dict[str, str],
+                   action: Dict[str, Union[Dict[str, str], str]]) \
+            -> Dict[str, str]:
         """
         DO NOT USE THIS DIRECTLY
         Credential store.
         Save config to disk:
-        credential_store.dispatch({'type': 'safe_to_disk'}
+        credential_store.dispatch({'type': 'save_to_disk'}
 
         Set a specific value:
         credential_store.dispatch(
@@ -124,7 +130,7 @@ class Store(metaclass=Singleton):
             state['location'] = action['name']
         elif action['type'] == 'set_case':
             state['case'] = action['case']
-        elif action['type'] == 'safe_to_disk':
+        elif action['type'] == 'save_to_disk':
             Store.write_config_to_disk(
                 Store.get_config_save_path("credentials"),
                 state
@@ -132,7 +138,7 @@ class Store(metaclass=Singleton):
         return state
 
     @staticmethod
-    def image(state: str, action: [str, str]) -> str:
+    def image(state: str, action: Dict[str, str]) -> str:
         """
         DO NOT USE THIS DIRECTLY
         Very simple store for saving the path to the image.
@@ -151,7 +157,7 @@ if __name__ == '__main__':
 
     print(stores.credential_store.get_state())
 
-    stores.credential_store.dispatch({'type': 'safe_to_disk'})
+    stores.credential_store.dispatch({'type': 'save_to_disk'})
     stores.credential_store.dispatch({'type': 'set_location',
                                       'location': 'value'})
 
