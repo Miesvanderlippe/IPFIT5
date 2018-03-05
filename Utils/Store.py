@@ -77,7 +77,7 @@ class Store(metaclass=Singleton):
         DO NOT USE THIS DIRECTLY
         Credential store.
         Save config to disk:
-        credential_store.dispatch({'type': 'safe_to_disk'}
+        credential_store.dispatch({'type': 'save_to_disk'}
 
         Set a specific value:
         credential_store.dispatch(
