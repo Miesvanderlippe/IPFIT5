@@ -5,7 +5,8 @@ from asciimatics.widgets import Frame, Layout, FileBrowser, Widget, Label, \
     Text, Divider
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
-from asciimatics.exceptions import ResizeScreenError, StopApplication, NextScene
+from asciimatics.exceptions import ResizeScreenError, StopApplication, \
+    NextScene
 from Utils.Store import Store
 
 
