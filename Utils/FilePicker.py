@@ -5,7 +5,7 @@ from asciimatics.widgets import Frame, Layout, FileBrowser, Widget, Label, \
     Text, Divider
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
-from asciimatics.exceptions import ResizeScreenError, StopApplication
+from asciimatics.exceptions import ResizeScreenError, StopApplication, NextScene
 from Utils.Store import Store
 
 
@@ -42,7 +42,7 @@ class FilepickerFrame(Frame):
     def selected(self) -> None:
         # Just confirm whenever the user actually selects something.
         self.store.dispatch({'type': 'set_image', 'image': self._list.value})
-        raise StopApplication("Image selected")
+        raise NextScene
 
     def process_event(self, event: Event) -> Event:
         # Do the key handling for this Frame.
