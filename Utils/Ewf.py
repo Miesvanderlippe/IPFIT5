@@ -103,8 +103,8 @@ class Ewf(pytsk3.Img_Info):
 
     @staticmethod
     def open_fs(img: pytsk3.Img_Info, vol: pytsk3.Volume_Info, path: str,
-                 part: pytsk3.Volume_Info) -> \
-             Union[Tuple[pytsk3.FS_Info, pytsk3.Directory], Tuple[None, None]]:
+                part: pytsk3.Volume_Info) -> \
+            Union[Tuple[pytsk3.FS_Info, pytsk3.Directory], Tuple[None, None]]:
         try:
             fs = pytsk3.FS_Info(
                 img, offset=part.start * vol.info.block_size)

@@ -48,7 +48,7 @@ class Store(metaclass=Singleton):
 
     @staticmethod
     def read_config_from_disk(path: Path, defaults: Dict[str, str]) -> \
-        Dict[str, str]:
+            Dict[str, str]:
         """
         Fills a config using values found on disk. Supply it with a config path
         and a defaults dict. Be warned; the defaults dict dictates the keys to
