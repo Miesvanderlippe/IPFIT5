@@ -1,4 +1,3 @@
-import curses
 from Utils.Logger import ExtendedLogger
 
 
@@ -7,13 +6,6 @@ class ModuleInterface:
     def __init__(self) -> None:
         self.logger = ExtendedLogger(self.__class__.__name__)
 
-    @staticmethod
-    def menu() -> []:
-        menu_items = [
-            ('Placeholder', curses.beep)
-        ]
-
-        return menu_items
 
     def run(self) -> None:
         """

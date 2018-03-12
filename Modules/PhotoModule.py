@@ -26,7 +26,7 @@ class PhotoModule(ModuleInterface):
 
 if __name__ == '__main__':
     module = PhotoModule()
-    print(module.logger.name)  # PhotoModule
+    # print(module.logger.name)  # PhotoModule
 
     store = Store()
     store.image_store.dispatch(

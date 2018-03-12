@@ -5,16 +5,11 @@
 # from Modules.PhotoModule import PhotoModule
 # from Modules.FileModule import FileModule
 
-# from Utils.FilePicker import filepicker_main as image_filepicker
+from Utils.FilePicker import FilepickerFrame
 from Utils.Store import Store
-
-# from Utils.Menu import Menu
-
-# from asciimatics import screen
-# from time import sleep
-
+from Utils.Ewf import Ewf
 from asciimatics.widgets import Frame, Layout, Label, Text, \
-    Button, PopUpDialog, Background, Divider
+    Button, PopUpDialog, Background, Divider, TextBox
 # , Divider, TextBox, DropdownList, PopupMenu, CheckBox, RadioButtons,
 # TimePicker, DatePicker,
 # from asciimatics.event import MouseEvent
@@ -23,8 +18,6 @@ from asciimatics.screen import Screen
 from asciimatics.exceptions import ResizeScreenError, NextScene, \
     StopApplication, InvalidFields
 import sys
-# import re
-# import datetime
 import logging
 
 
@@ -51,6 +44,14 @@ class MainApp(Frame):
         # Store related stuff
         self.image_picker = None
         self.image = None
+        self.image_label = TextBox(height=2,
+                                   as_string=True,
+                                   label='Image:',
+                                   name='IA')
+        self.image_label.disabled = True
+        self.image_label.custom_colour = 'label'
+        self.image_info_button = Button('Image info', self.file_info)
+        self.image_info_button.disabled = True
 
         # Set up the layout
         layout = Layout([1, 18, 1])
@@ -77,7 +78,22 @@ class MainApp(Frame):
 
         layout.add_widget(Button("Save to disk", self.save_creds_to_disk), 1)
 
-        layout.add_widget(Divider(height=3), 1)
+        image_layout = Layout([1, 18, 1])
+        self.add_layout(image_layout)
+
+        image_layout.add_widget(Divider(height=3), 1)
+
+        image_layout.add_widget(self.image_label, 1)
+
+        image_buttons_layout = Layout([1, 9, 9, 1])
+        self.add_layout(image_buttons_layout)
+
+        image_buttons_layout.add_widget(
+            Button('Select image', self.file_picker), 1)
+        image_buttons_layout.add_widget(self.image_info_button, 2)
+
+        image_buttons_layout.add_widget(Divider(height=3), 1)
+        image_buttons_layout.add_widget(Divider(height=3), 2)
 
         # Add some buttons
         layout2 = Layout([1, 1, 1])
@@ -109,6 +125,21 @@ class MainApp(Frame):
         #    ]
         # main_menu = Menu(main_menu_items, self.screen, sub=False)
         # main_menu.display()
+
+    def file_info(self):
+        ewf = Ewf()
+        metadata = ewf.encase_metadata()
+        volume_information = ewf.volume_info()
+
+        if len(metadata) > 0:
+            metadata.append('')
+
+        self._scene.add_effect(
+            PopUpDialog(self._screen,
+                        '\n'.join([*metadata, *volume_information]), ['OK']))
+
+    def file_picker(self):
+        raise NextScene()
 
     def save_creds_to_disk(self) -> None:
         self.stores.credential_store.dispatch({'type': 'save_to_disk'})
@@ -176,7 +207,9 @@ def demo(screen, scene):
     screen.play([Scene([
         Background(screen, Screen.COLOUR_WHITE),
         MainApp(screen)
-    ], -1)], stop_on_resize=True, start_scene=scene)
+    ], -1),
+        Scene([FilepickerFrame(screen)], -1)],
+        stop_on_resize=True, start_scene=scene)
 
 
 if __name__ == '__main__':
