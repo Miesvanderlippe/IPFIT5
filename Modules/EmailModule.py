@@ -72,6 +72,13 @@ class EmailModule(ModuleInterface):
             # dit moet dus email adress worden. Nog niet duidelijk of name gelijk staat aan email adres
         }
 
+    def process_tabel(self, message):
+        return {
+            "delivery_time": message.delivery_time,
+            "sender": message.sender_name,
+            "subject": message.subject,
+        }
+
     #berichten verwerken.
     def processMessage(self, message):
         return {
@@ -115,8 +122,24 @@ class EmailModule(ModuleInterface):
         csv_fout.writerows(deletedMessages_list)
         fout.close()
 
-    ############## moet nog gedaan worden
-    #def allSendersReport(self):
+
+    def allSendersReport(self, Senders_list, folder_name ):
+        """
+        Deze functie zet alle gevonden emailadressen in een lijst
+        :param Senders_list: Dit is de lijst die wordt gemaakt
+        :param folder_name: Dit is de naam van de map waar de lijst wordt opgeslagen
+        :return:
+        """
+        if not len(Senders_list):
+            return
+
+        fout_path = self.makePath("folder_report_" + folder_name + ".csv")
+        fout = open(fout_path, 'wb')
+        header = ['sender']
+        csv_fout = csv.DictWriter(fout, fieldnames=header, extrasaction='ignore')
+        csv_fout.writeheader()
+        csv_fout.writerows(Senders_list)
+        fout.close()
 
 if __name__ == '__main__':
 
