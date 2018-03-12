@@ -3,6 +3,9 @@ import zipfile
 import tarfile
 import csv
 import os
+from langdetect import detect
+
+
 
 class FileModule(ModuleInterface):
 
@@ -32,6 +35,14 @@ def archieflijst_wegschrijven():
     with open("archiefbestanden.csv", "w") as f:
         writer = csv.writer(f, delimiter="\n")
         writer.writerow(archievenlijst)
+# taalbepalen met langcheck, file openen -> lezen en testen
+def langcheck():
+    file = open('taalbestand2DE.txt', 'r')
+    text = file.read()
+    file.close()
+    test = detect(text)
+    print(test)
+
 
 
 
@@ -40,4 +51,4 @@ if __name__ == '__main__':
     zips_uitlezen()
     tars_uitlezen()
     archieflijst_wegschrijven()
-
+    langcheck()
