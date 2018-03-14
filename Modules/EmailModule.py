@@ -3,26 +3,23 @@ import os
 import csv
 import sys
 import argparse
-from Interfaces.ModuleInterface import ModuleInterface
-from Utils.Store import Store
-from Utils.Ewf import Ewf
+
 
 # !!!!!!!!!!!!!!!!!!!!CONCEPT CODE!!!!!!
 
-class EmailModule(ModuleInterface):
-
-    def __init__(self) -> None:
-        super().__init__()
+class EmailModule():
 
 
 # opgeven waar de output (CSV lijsten) moeten worden weergegeven)
-    output_directory = ""
+    output_directory = "C:\\shit"
 
 # main functie moet het bestand openen enzo. Dit moet worden gekoppeld aan de image!
     def main(self, pst_file, report_name):
 
+
         pst_name = os.path.split(pst_file)[1]
-        opst = pypff.open(pst_file)
+        opst = pypff.file()
+        opst.open(pst_file)
         root = opst.get_root_folder()
         self.folderTraverse(root)
 
@@ -81,6 +78,7 @@ class EmailModule(ModuleInterface):
 
     #berichten verwerken.
     def processMessage(self, message):
+        delivery_time = ''
         return {
             "subject": message.subject,
             "sender": message.sender_name,
@@ -143,27 +141,17 @@ class EmailModule(ModuleInterface):
 
 if __name__ == '__main__':
 
-    store = Store()
-    store.image_store.dispatch(
-        {
-            'type': 'set_image',
-            'image': 'C:/Users/Bram/Documents/IPFITPROJECT/Image/Images/USB/usb_image.dd'
-        }
-         )
 
-    module = EmailModule()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('PST_FILE', help="PST File Format from Microsoft Outlook")
+    parser.add_argument('OUTPUT_DIR', help="Directory of output for temporary and report files.")
+    parser.add_argument('--title', help="title bla bla")
+    args = parser.parse_args()
 
-ewf = Ewf()
-data = ewf.files()
-print(data)
+    output_directory = os.path.abspath(args.OUTPUT_DIR)
 
-### Voor het parsen en aanmaken van de CSV bestanden.
-parser = argparse.ArgumentParser
-parser.add_argument('PST_FILE', help="PST File Format from Microsoft Outlook")
-parser.add_argument('OUTPUT_DIR', help="Directory of output for temporary and report files.")
-args = parser.parse_args()
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
 
-output_directory = os.path.abspath(args.OUTPUT_DIR)
 
-if not os.path.exists(output_directory):
-    os.makedirs(output_directory)
+
