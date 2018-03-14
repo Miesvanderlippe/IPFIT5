@@ -5,9 +5,7 @@ from hashlib import sha256
 from sys import setrecursionlimit, exc_info
 from pathlib import Path as PathlibPath
 from datetime import datetime
-
 from Utils.Store import Store
-
 from typing import List, Union, Tuple
 
 
@@ -24,6 +22,10 @@ class ImageHandler(pytsk3.Img_Info):
 
     def close(self) -> None:
         self.ewf_handle.close()
+        self.logger.debug('Extension: ' + self.ext)
+
+        if self.store.get_state() != 'initial':
+            self.image_handle = pytsk3.Img_Info(self.store.get_state())
 
     def check_file_path(self) -> bool:
         image_path = PathlibPath(self.store.get_state())
