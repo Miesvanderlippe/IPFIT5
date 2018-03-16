@@ -2,41 +2,19 @@ import os
 import sys
 import argparse
 import logging
-
-
+from Utils.Store import Store
+from Utils.Ewf import Ewf
 import pypff
-
 import csv
 from collections import Counter
 
+"""
+De code werkt, helaas worden niet alle mappen uit het .pst bestand gehaald. De mappen die tot nu toe worden geëxporteerd:
+Postvak IN, Verwijderde items & ongewenste Email.
+"""
 
 pst_file = "C:\\shit\\testende59@gmail.com.pst"
 output_directory = "C:\\shit"
- # ik kom niet uit de volgende bug:
-"""
-"C:\Program Files\Python36\python.exe" C:/Users/Bram/Documents/IPFIT5/Modules/EmailModuletest.py
-Traceback (most recent call last):
-  File "C:/Users/Bram/Documents/IPFIT5/Modules/EmailModuletest.py", line 133, in <module>
-    main(pst_file)
-  File "C:/Users/Bram/Documents/IPFIT5/Modules/EmailModuletest.py", line 32, in main
-    folderTraverse(root)
-  File "C:/Users/Bram/Documents/IPFIT5/Modules/EmailModuletest.py", line 51, in folderTraverse
-    folderTraverse(folder) # Call new folder to traverse:
-  File "C:/Users/Bram/Documents/IPFIT5/Modules/EmailModuletest.py", line 52, in folderTraverse
-    checkForMessages(folder)
-  File "C:/Users/Bram/Documents/IPFIT5/Modules/EmailModuletest.py", line 66, in checkForMessages
-    folderReport(message_list, folder.name)
-  File "C:/Users/Bram/Documents/IPFIT5/Modules/EmailModuletest.py", line 104, in folderReport
-    csv_fout.writerows(message_list)
-  File "C:\Program Files\Python36\lib\csv.py", line 158, in writerows
-    return self.writer.writerows(map(self._dict_to_list, rowdicts))
-  File "C:\Program Files\Python36\lib\encodings\cp1252.py", line 19, in encode
-    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
-UnicodeEncodeError: 'charmap' codec can't encode characters in position 69-70: character maps to <undefined>
-
-zie functie folderReport
-"""
-
 
 def main(pst_file):
     """
@@ -50,8 +28,7 @@ def main(pst_file):
     file = pypff.file()
     file.open(pst_file)
     root = file.get_root_folder()
-
-
+    print(root)
     folderTraverse(root)
 
 def makePath(file_name):
@@ -69,7 +46,9 @@ def folderTraverse(base):
     :param base: Base folder to scan for new items within the folder.
     :return: None
     """
+
     for folder in base.sub_folders:
+        print(help(folder))
         if folder.number_of_sub_folders:
             folderTraverse(folder) # Call new folder to traverse:
         checkForMessages(folder)
@@ -100,9 +79,6 @@ def processMessage(message):
         "sender": message.sender_name,
         "header": message.transport_headers,
         "body": message.plain_text_body,
-        #"creation_time": message.creation_time,
-        #"submit_time": message.client_submit_time,
-        #"delivery_time": message.delivery_time,
         "attachment_count": message.number_of_attachments,
     }
 
@@ -120,12 +96,19 @@ def folderReport(message_list, folder_name):
 
     # CSV Report
     fout_path = makePath("folder_report_" + folder_name + ".csv")
-    fout = open(fout_path, 'w')
-    header = ['subject', 'sender','header','body', 'attachment_count']
-    csv_fout = csv.DictWriter(fout, fieldnames=header, extrasaction='ignore')
-    csv_fout.writeheader()
-    csv_fout.writerows(message_list)
-    fout.close()
+    #fout = open(fout_path, 'w')
+    with open (fout_path, 'w', newline='') as fout:
+        header = ['header', 'body', 'sender', 'subject', 'attachment_count']
+
+        try:
+            csv_fout = csv.DictWriter(fout, fieldnames=header)
+            csv_fout.writeheader()
+            for x in message_list:
+                csv_fout.writerow(x)
+
+        except Exception as e:
+            pass
+
 
 if __name__ == "__main__":
 
