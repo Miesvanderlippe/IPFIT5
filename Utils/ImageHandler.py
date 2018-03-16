@@ -133,7 +133,7 @@ class ImageHandler(pytsk3.Img_Info, metaclass=Singleton):
             fs_object.info.name.name.decode('UTF-8') in ['.', '..']
 
     def single_file(self, partition: int, path: str, filename: str,
-                    hashing: bool = False) -> Union[str, pytsk3.File, None]:
+                    hashing: bool = False) -> Union[str, bytes, None]:
         vol, img = self.get_handle()
         fs, root = None, None
 
@@ -154,7 +154,7 @@ class ImageHandler(pytsk3.Img_Info, metaclass=Singleton):
                         file_name = fs_object.info.name.name.decode('UTF-8')
                         if file_name.lower() == filename.lower():
                             return self.hash_file(fs_object) if hashing else \
-                                fs_object
+                                self.read_file(fs_object)
                     except IOError:
                         pass
             except RuntimeError:
@@ -244,6 +244,13 @@ class ImageHandler(pytsk3.Img_Info, metaclass=Singleton):
                 pass
         dirs.pop(-1)
         return data
+
+    @staticmethod
+    def read_file(fs_object: pytsk3.File) -> bytes:
+        offset = 0
+        size = getattr(fs_object.info.meta, "size", 0)
+
+        return fs_object.read_random(offset, size)
 
     @staticmethod
     def hash_file(fs_object: pytsk3.File) -> str:
