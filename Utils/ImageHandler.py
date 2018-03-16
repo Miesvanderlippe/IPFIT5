@@ -2,14 +2,15 @@ import pytsk3
 
 from re import search, I
 from hashlib import sha256
-from sys import setrecursionlimit, exc_info
+from sys import setrecursionlimit
 from pathlib import Path as PathlibPath
 from datetime import datetime
 from Utils.Store import Store
 from typing import List, Union, Tuple
+from Utils.Singleton import Singleton
 
 
-class ImageHandler(pytsk3.Img_Info):
+class ImageHandler(pytsk3.Img_Info, metaclass=Singleton):
     def __init__(self, ) -> None:
         self.store = Store().image_store
 
