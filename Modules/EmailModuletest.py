@@ -62,10 +62,23 @@ def checkForMessages(folder):
     """
 
     message_list = []
+    message_list_sender = []
     for message in folder.sub_messages:
         message_dict = processMessage(message)
+        message_dict_sender = processSender(message)
         message_list.append(message_dict)
+        message_list_sender.append(message_dict_sender)
     folderReport(message_list, folder.name)
+    folderReport_sender(message_list_sender, folder.name)
+
+    """
+
+    message_listb = []
+    for x in folder.sub_messages:
+        message_dictb = processSender(message)
+        message_listb.append(message_dictb)
+    folderReportb(message_listb, folder.name)
+    """
 
 
 def processMessage(message):
@@ -80,6 +93,10 @@ def processMessage(message):
         "header": message.transport_headers,
         "body": message.plain_text_body,
         "attachment_count": message.number_of_attachments,
+    }
+def processSender(message):
+    return {
+        "sender": message.sender_name,
     }
 
 
@@ -109,6 +126,31 @@ def folderReport(message_list, folder_name):
         except Exception as e:
             pass
 
+def folderReport_sender(message_list_sender, folder_name):
+    """
+    The folderReport function generates a report per PST folder
+    :param message_list: A list of messages discovered during scans
+    :folder_name: The name of an Outlook folder within a PST
+    :return: None
+    """
+    if not len(message_list_sender):
+
+        return
+
+    # CSV Report
+    fout_path = makePath("lijst_emailadressen" + folder_name + ".csv")
+    #fout = open(fout_path, 'w')
+    with open (fout_path, 'w', newline='') as fout:
+        header = ['sender']
+
+        try:
+            csv_fout = csv.DictWriter(fout, fieldnames=header)
+            csv_fout.writeheader()
+            for x in message_list_sender:
+                csv_fout.writerow(x)
+
+        except Exception as e:
+            pass
 
 if __name__ == "__main__":
 
