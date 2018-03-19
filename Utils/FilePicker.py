@@ -1,5 +1,4 @@
-import os
-
+from os import path
 from asciimatics.event import KeyboardEvent, Event
 from asciimatics.widgets import Frame, Layout, FileBrowser, Widget, Label, \
     Text, Divider
@@ -27,7 +26,7 @@ class FilepickerFrame(Frame):
         self._details.disabled = True
         self._details.custom_colour = "field"
         self._list = FileBrowser(Widget.FILL_FRAME,
-                                 os.path.abspath("."),
+                                 path.abspath("."),
                                  name="mc_list",
                                  on_select=self.selected)
         layout.add_widget(Label("Image file picker"))
