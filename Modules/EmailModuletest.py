@@ -1,4 +1,4 @@
-import os
+import os, os.path
 import sys
 import argparse
 import logging
@@ -7,13 +7,15 @@ from Utils.Ewf import Ewf
 import pypff
 import csv
 from collections import Counter
+import pathlib
+import glob
 
 """
 De code werkt, helaas worden niet alle mappen uit het .pst bestand gehaald. De mappen die tot nu toe worden geëxporteerd:
 Postvak IN, Verwijderde items & ongewenste Email.
 """
 
-pst_file = "C:\\shit\\testende59@gmail.com.pst"
+pst_file = "C:\\shit\\bramchoufoer@hotmail.com.pst"
 output_directory = "C:\\shit"
 
 def main(pst_file):
@@ -48,7 +50,7 @@ def folderTraverse(base):
     """
 
     for folder in base.sub_folders:
-        print(help(folder))
+
         if folder.number_of_sub_folders:
             folderTraverse(folder) # Call new folder to traverse:
         checkForMessages(folder)
@@ -87,11 +89,14 @@ def processMessage(message):
     :param message: pypff.Message object
     :return: A dictionary with message fields (values) and their data (keys)
     """
+
+    # print(message.plain_text_body)
+
     return {
         "subject": message.subject,
         "sender": message.sender_name,
         "header": message.transport_headers,
-        "body": message.plain_text_body,
+        "body": message.plain_text_body.decode,
         "attachment_count": message.number_of_attachments,
     }
 def processSender(message):
@@ -112,10 +117,10 @@ def folderReport(message_list, folder_name):
         return
 
     # CSV Report
-    fout_path = makePath("folder_report_" + folder_name + ".csv")
+    fout_path = makePath("alle_emails" + folder_name + ".csv")
     #fout = open(fout_path, 'w')
     with open (fout_path, 'w', newline='') as fout:
-        header = ['header', 'body', 'sender', 'subject', 'attachment_count']
+        header= ['sender','subject','body','attachment_count', 'header']
 
         try:
             csv_fout = csv.DictWriter(fout, fieldnames=header)
@@ -124,6 +129,7 @@ def folderReport(message_list, folder_name):
                 csv_fout.writerow(x)
 
         except Exception as e:
+            print(e)
             pass
 
 def folderReport_sender(message_list_sender, folder_name):
@@ -152,10 +158,23 @@ def folderReport_sender(message_list_sender, folder_name):
         except Exception as e:
             pass
 
+
+def merge_csv():
+    files = [x for x in os.listdir('C:\\shit') if x.startswith('lijst_')]
+
+    with open('C:\\shit\\Alle_Email_Adressen.csv', 'wb') as out:
+        for x in files:
+            f_path = os.path.join('C:\\shit', x)
+            with open(f_path, 'rb') as f:
+                out.write(f.read())
+
+
+
 if __name__ == "__main__":
 
     output_directory = os.path.abspath(output_directory)
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
     main(pst_file)
+    merge_csv()
 
