@@ -5,12 +5,11 @@ from pathlib import Path as PathlibPath
 from datetime import datetime
 from Utils.Store import Store
 from typing import List, Union, Tuple
-from Utils.Singleton import Singleton
 from pytsk3 import Img_Info, Volume_Info, FS_Info, Directory, File, \
-    TSK_VS_PART_INFO, TSK_IMG_TYPE_EXTERNAL, TSK_FS_META_TYPE_DIR
+    TSK_VS_PART_INFO, TSK_FS_META_TYPE_DIR
 
 
-class ImageHandler(Img_Info, metaclass=Singleton):
+class ImageHandler(Img_Info):
     def __init__(self, ) -> None:
         self.store = Store().image_store
 

@@ -7,7 +7,7 @@
 
 from Utils.FilePicker import FilepickerFrame
 from Utils.Store import Store
-from Utils.Ewf import Ewf
+from Utils.ImageHandler import ImageHandler
 from asciimatics.widgets import Frame, Layout, Label, Text, \
     Button, PopUpDialog, Background, Divider, TextBox
 # , Divider, TextBox, DropdownList, PopupMenu, CheckBox, RadioButtons,
@@ -20,6 +20,9 @@ from asciimatics.exceptions import ResizeScreenError, NextScene, \
 import sys
 import logging
 
+from sys import platform
+from subprocess import call
+from pathlib import Path
 
 logging.basicConfig(filename="forms.log", level=logging.DEBUG)
 
@@ -27,6 +30,7 @@ logging.basicConfig(filename="forms.log", level=logging.DEBUG)
 class MainApp(Frame):
     def __init__(self, screen):
         self.stores = Store()
+        self._screen = screen
 
         credential_state = self.stores.credential_store.get_state()
         current_state = {**credential_state}
@@ -127,9 +131,9 @@ class MainApp(Frame):
         # main_menu.display()
 
     def file_info(self):
-        ewf = Ewf()
-        metadata = ewf.encase_metadata()
-        volume_information = ewf.volume_info()
+        image_handler = ImageHandler()
+        metadata = image_handler.encase_metadata()
+        volume_information = image_handler.volume_info()
 
         if len(metadata) > 0:
             metadata.append('')
@@ -139,7 +143,7 @@ class MainApp(Frame):
                         '\n'.join([*metadata, *volume_information]), ['OK']))
 
     def file_picker(self):
-        raise NextScene()
+        raise NextScene('FilePicker')
 
     def save_creds_to_disk(self) -> None:
         self.stores.credential_store.dispatch({'type': 'save_to_disk'})
@@ -202,13 +206,27 @@ class MainApp(Frame):
     # def filepicker(self):
     #     image_filepicker()
 
+    @staticmethod
+    def finished(_):
+        MainApp.open_file(Path(__file__).joinpath('Output'))
+        raise StopApplication('Task done')
+
+    @staticmethod
+    def open_file(filename):
+        if platform == "win32":
+            from os import startfile
+            startfile(filename)
+        else:
+            opener = "open" if platform == "darwin" else "xdg-open"
+            call([opener, filename])
+
 
 def demo(screen, scene):
     screen.play([Scene([
         Background(screen, Screen.COLOUR_WHITE),
         MainApp(screen)
-    ], -1),
-        Scene([FilepickerFrame(screen)], -1)],
+    ], -1, name='Main'),
+        Scene([FilepickerFrame(screen)], -1, name='FilePicker')],
         stop_on_resize=True, start_scene=scene)
 
 
