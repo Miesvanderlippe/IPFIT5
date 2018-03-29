@@ -11,7 +11,7 @@ from Utils.Store import Store
 from typing import List, Union, Tuple
 
 
-class Ewf(pytsk3.Img_Info):
+class ImageHandler(pytsk3.Img_Info):
     def __init__(self, ) -> None:
         self.store = Store().image_store
 
@@ -273,7 +273,7 @@ if __name__ == '__main__':
         }
     )
 
-    ewf = Ewf()
+    ewf = ImageHandler()
 
     volume = ewf.info()
 
