@@ -1,18 +1,8 @@
-# from os import sep
-
-# from Modules.EmailModule import EmailModule
-# from Modules.HackedModule import HackedModule
-# from Modules.PhotoModule import PhotoModule
-# from Modules.FileModule import FileModule
-
 from Utils.FilePicker import FilepickerFrame
 from Utils.Store import Store
 from Utils.ImageHandler import ImageHandler
 from asciimatics.widgets import Frame, Layout, Label, Text, \
     Button, PopUpDialog, Background, Divider, TextBox
-# , Divider, TextBox, DropdownList, PopupMenu, CheckBox, RadioButtons,
-# TimePicker, DatePicker,
-# from asciimatics.event import MouseEvent
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
 from asciimatics.exceptions import ResizeScreenError, NextScene, \
