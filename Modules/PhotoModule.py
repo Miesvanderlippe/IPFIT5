@@ -2,6 +2,7 @@ from Interfaces.ModuleInterface import ModuleInterface
 from Utils.Store import Store
 from Utils.ImageHandler import ImageHandler
 import csv
+import imghdr
 
 
 class PhotoModule(ModuleInterface):
@@ -15,6 +16,23 @@ class PhotoModule(ModuleInterface):
     def run(self) -> None:
         data = self.ewf.files()
         PhotoModule.write_csv(data, "files.csv")
+
+        for partition in data:
+            for file_info in partition:
+                file = self.ewf.single_file(
+                    int(file_info[0][-1]),
+                    ImageHandler.rreplace(
+                        file_info[8],
+                        file_info[1],
+                        ''
+                    ),
+                    file_info[1])
+
+                if file is not None:
+                    img_type = imghdr.what(None, h=file)
+                    if img_type is not None:
+                        print(img_type)
+
         self._progress = 100
 
     def status(self) -> str:
@@ -43,7 +61,7 @@ if __name__ == '__main__':
     store.image_store.dispatch(
         {
             'type': 'set_image',
-            'image': '/Users/Mies/Documents/swag.dd'
+            'image': '/Users/Mies/Documents/usb_with_images.dd'
         }
     )
 
