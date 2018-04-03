@@ -114,3 +114,8 @@ venv.bak/
 Configs/*.cfg
 
 *.csv
+
+Modules/*.zip
+Modules/*.tar.gz
+Modules/*.txt
+
