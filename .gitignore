@@ -119,3 +119,7 @@ Modules/*.zip
 Modules/*.tar.gz
 Modules/*.txt
 
+# Output files
+Output/*.xlsx
+Output/*.csv
+
