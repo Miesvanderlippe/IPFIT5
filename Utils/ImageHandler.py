@@ -20,6 +20,9 @@ class ImageHandler(Img_Info):
         self.ext = PathlibPath(self.store.get_state()).suffix.lower()[1:]
         self.search_result = None
 
+        if self.store.get_state() != 'initial':
+            self.image_handle = Img_Info(self.store.get_state())
+
     def close(self) -> None:
         self.ewf_handle.close()
         self.logger.debug('Extension: ' + self.ext)
@@ -38,7 +41,7 @@ class ImageHandler(Img_Info):
             return False
         return True
 
-    def info(self) -> Volume_Info:
+    def info(self) -> Union[Volume_Info, None]:
         try:
             return Volume_Info(self.image_handle)
         except RuntimeError:
