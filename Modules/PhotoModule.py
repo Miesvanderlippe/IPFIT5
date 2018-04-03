@@ -1,12 +1,12 @@
 from Interfaces.ModuleInterface import ModuleInterface
 from Utils.Store import Store
-from Utils.Ewf import Ewf
+from Utils.ImageHandler import ImageHandler
 import csv
 
 
 class PhotoModule(ModuleInterface):
     def __init__(self) -> None:
-        self.ewf = Ewf()
+        self.ewf = ImageHandler()
         self._status = "Initialised"
         self._progress = 0
 

@@ -155,8 +155,10 @@ class ImageHandler(Img_Info):
                     try:
                         file_name = fs_object.info.name.name.decode('UTF-8')
                         if file_name.lower() == filename.lower():
+
                             return self.hash_file(fs_object) if hashing else \
-                                fs_object
+                                self.read_file(fs_object)
+
                     except IOError:
                         pass
             except RuntimeError:
@@ -246,6 +248,18 @@ class ImageHandler(Img_Info):
                 pass
         dirs.pop(-1)
         return data
+
+    @staticmethod
+    def read_file(fs_object: File) -> bytes:
+        """
+        Read the bytes from an fs_object file
+        :param fs_object: fs_oject from the image
+        :return: Bytes of the fs_object file
+        """
+        offset = 0
+        size = getattr(fs_object.info.meta, "size", 0)
+
+        return fs_object.read_random(offset, size)
 
     @staticmethod
     def hash_file(fs_object: File) -> str:
