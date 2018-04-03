@@ -114,3 +114,7 @@ venv.bak/
 Configs/*.cfg
 
 *.csv
+
+# Output files
+Output/*.xlsx
+Output/*.csv
