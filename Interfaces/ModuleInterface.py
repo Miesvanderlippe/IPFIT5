@@ -1,12 +1,16 @@
+from abc import ABC, abstractmethod
 from Utils.Logger import ExtendedLogger
 
 
-class ModuleInterface:
+class ModuleInterface(ABC):
+    """
+    WIP interface for modules to communicate with the framework.
+    """
 
     def __init__(self) -> None:
         self.logger = ExtendedLogger(self.__class__.__name__)
 
-
+    @abstractmethod
     def run(self) -> None:
         """
         Should run the module
@@ -14,6 +18,7 @@ class ModuleInterface:
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def status(self) -> str:
         """
         Should return the current status using a string (starting, runnning,
@@ -22,6 +27,7 @@ class ModuleInterface:
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def progress(self) -> int:
         """
         Progress in percentage.
