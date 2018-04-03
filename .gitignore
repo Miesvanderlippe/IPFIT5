@@ -112,3 +112,9 @@ venv.bak/
 
 # Ignore stored configs
 Configs/*.cfg
+
+*.csv
+
+# Output files
+Output/*.xlsx
+Output/*.csv
