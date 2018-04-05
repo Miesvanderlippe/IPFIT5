@@ -317,6 +317,7 @@ def read_from_to():
         csv_fout = csv.DictWriter(fout, fieldnames=header)
         csv_fout.writeheader()
         for froms_to in combined:
+
             csv_fout.writerow(froms_to)
 
         '''
@@ -326,28 +327,45 @@ def read_from_to():
 
 
 def graph():
-    #froms,tos = read_from_to()
-    G = nx.Graph()
-    G.add_node("a")
-    G.add_nodes_from(["b", "c"])
+    fig = plt.figure(figsize=(40, 15))
+    with open("C:\\shit\\Gegevens_Graaf.csv", 'rt') as f:
+        f = csv.reader(f)
+        headers = next(f)
+        emails = [row for row in f]
 
-    G.add_edge(1, 2)
-    edge = ("d", "e")
-    G.add_edge(*edge)
-    edge = ("a", "b")
-    G.add_edge(*edge)
+    unique_emails = list(set([row[0] for row in emails if len(row) > 2]))
+    id = list(enumerate(unique_emails))
 
-    print("Nodes of graph: ")
-    print(G.nodes())
-    print("Edges of graph: ")
-    print(G.edges())
+    links = []
+    print(emails)
+    for row in emails:
+        if len(row) > 1:
+            links.append({row[0]: row[1]})
 
-    # adding a list of edges:
-    G.add_edges_from([("a", "c"), ("c", "d"), ("a", 1), (1, "d"), ("a", 2)])
+    G = nx.DiGraph(directed=True)
+    email_node = []
+    for row in id:
+        email_node.append(row[0])
 
-    nx.draw(G)
-    plt.savefig("simple_path.png")  # save as png
-    plt.show()  # display
+    G.add_nodes_from(email_node)
+
+    for node in links:
+        edges = list(node.items())
+        G.add_edge(*edges[0])
+
+    # nx.draw(G,with_labels=True)
+    options = {
+        'node_color': 'blue',
+        'node_size': 200,
+        'width': 2,
+        'arrowstyle': '-|>',
+        'arrowsize': 10,
+    }
+    nx.spectral_layout(G, dim=2, weight='weight', scale=0.1, center=None)
+    nx.draw_networkx(G, arrows=True, **options)
+
+    plt.show(G)
+    # plt.savefig("C:\\shit\\Graaf.png", dpi=300)
 
 if __name__ == "__main__":
 
@@ -361,5 +379,5 @@ if __name__ == "__main__":
     #merge_csv_addresses()
     #merge_csv_emails()
     #merge_csv_email_notes()
-    graph()
     read_from_to()
+    graph()
