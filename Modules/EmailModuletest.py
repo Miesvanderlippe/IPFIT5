@@ -1,14 +1,6 @@
 import os, os.path
-import sys
-import argparse
-import logging
-from Utils.Store import Store
-from Utils.Ewf import Ewf
 import pypff
 import csv
-from collections import Counter
-import pathlib
-import glob
 import networkx as nx
 import matplotlib.pyplot as plt
 from collections import defaultdict
@@ -327,7 +319,7 @@ def read_from_to():
 
 
 def graph():
-    fig = plt.figure(figsize=(40, 15))
+    #fig = plt.figure(figsize=(50,25))
     with open("C:\\shit\\Gegevens_Graaf.csv", 'rt') as f:
         f = csv.reader(f)
         headers = next(f)
@@ -342,7 +334,7 @@ def graph():
         if len(row) > 1:
             links.append({row[0]: row[1]})
 
-    G = nx.DiGraph(directed=True)
+    G = nx.DiGraph(directed=False)
     email_node = []
     for row in id:
         email_node.append(row[0])
@@ -359,10 +351,11 @@ def graph():
         'node_size': 200,
         'width': 2,
         'arrowstyle': '-|>',
-        'arrowsize': 10,
+        'arrowsize': 5,
     }
-    nx.spectral_layout(G, dim=2, weight='weight', scale=0.1, center=None)
-    nx.draw_networkx(G, arrows=True, **options)
+    pos = nx.spring_layout(G, k=0.5, iterations=30, scale=0.8)
+    # nx.spectral_layout(G, dim=2, weight='weight', scale=0.1, center=None)
+    nx.draw_networkx(G, pos, arrows=True, **options)
 
     plt.show(G)
     # plt.savefig("C:\\shit\\Graaf.png", dpi=300)
