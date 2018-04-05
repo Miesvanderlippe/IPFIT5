@@ -1,74 +1,42 @@
 from Interfaces.ModuleInterface import ModuleInterface
-from langdetect import detect
-from Utils.Ewf import Ewf
+from Utils.ImageHandler import ImageHandler
 from Utils.Store import Store
-import zipfile
-import tarfile
+from hashlib import sha256
+import xlsxwriter
 import csv
-import os
-import sys
+
 
 class FileModule(ModuleInterface):
 
     def __init__(self) -> None:
         super().__init__()
-
-    @staticmethod
-    def write_csv(data, output):
-        if not data:
-            return
-
-        with open(output, 'w',encoding="utf-8") as csvfile:
-            csv_writer = csv.writer(csvfile)
-            headers = ['Partition', 'File', 'File Ext', 'File Type',
-                       'Create Date', 'Modify Date', 'Change Date', 'Size',
-                       'File Path', 'Hash']
-            csv_writer.writerow(headers)
-            for result_list in data:
-                csv_writer.writerows(result_list)
+        self.imagehandler = ImageHandler()
+        self._status = "Initialised"
+        self._progress = 0
+        self.headers = ['Partition\n', 'File\n', 'File Ext\n', 'File Type\n', 'Create Date\n', 'Modify Date\n',
+                        'Change Date\n', 'Size\n', 'File Path\n']
+        self.workbook = xlsxwriter.Workbook("UitvoerBestandsModule.xlsx")
 
 
+    def progress(self) -> int:
+        return self._progress
 
-# aanmaken lijst waar bestandsnamen die zich in de containers bevinden naar worden weggeschreven
-archievenlijst = []
+    def status(self) -> str:
+        return self._status
 
+    def run(self) -> None:
+        data = self.imagehandler.files()
+        self.bestandslijst()
+        self._progress = 100
 
-# # uitlezen van de zip archieven, deze vervolgens appenden aan de archievenlijst
-# def archieven_uitlezen():
-#     zips = zipfile.ZipFile("ziparchief.zip",'r')
-#    # print(zips.namelist)
-#     for item in zips.namelist():
-#         archievenlijst.append(item)
-#     # print(archievenlijst)
-#         tars = tarfile.open("tararchief.tar.gz", "r:gz")
-#         for tarinfo in tars:
-#             archievenlijst.append(tarinfo.name)
-#
-# # Alle bestandsnamen wegschrijven naar een .csv op een nieuwe regel.
-# def archieflijst_wegschrijven():
-#     with open("archiefbestanden.csv", "w") as f:
-#         writer = csv.writer(f, delimiter="\n")
-#         writer.writerow(archievenlijst)
-#
-# # taalbepalen met langcheck, file openen -> lezen en testen
-# def langcheck():
-#     file = open('taaltekstbestand.txt', 'r')
-#     text = file.read()
-#     file.close()
-#     test = detect(text)
-#     print(test)
-#
-# # bestandsextensies uit paden halen en wegschrijven
-# def extensies_uit_paden():
-#     extensiepadlijst = []
-# extensiepadlijst  = [os.path.join(r,file) for r,d,f in os.walk() for file in f]
-# with open("bestandsextensies.csv", "w") as f:
-#     writer = csv.writer(f, delimiter="\n")
-#     writer.writerow(extensiepadlijst)
+    def bestandslijst(self):
+        self.bestandslijsttab = self.workbook.add_worksheet("Bestanden", None)
+        for kolom, header in enumerate(self.headers):
+            self.bestandslijsttab.write(0,kolom,self.headers[kolom])
+        self.workbook.close()
 
 
 if __name__ == '__main__':
-    module = FileModule()
 
     store = Store()
     store.image_store.dispatch(
@@ -77,14 +45,14 @@ if __name__ == '__main__':
             'image': 'C:\\Studie\\ipfit5\\lubuntu.dd'
         }
     )
-
-    ewf = Ewf()
-data = ewf.files()
-#FileModule.write_csv(data, "b.csv")
+    module = FileModule()
+    module.run()
 
 
 
-#archieven_uitlezen()
-#archieflijst_wegschrijven()
-#extensies_uit_paden()
-#langcheck()
+
+
+
+
+
+
