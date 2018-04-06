@@ -5,9 +5,23 @@ import csv
 
 
 class PhotoModule(ModuleInterface):
-
     def __init__(self) -> None:
+        self.ewf = Ewf()
+        self._status = "Initialised"
+        self._progress = 0
+
         super().__init__()
+
+    def run(self) -> None:
+        data = self.ewf.files()
+        PhotoModule.write_csv(data, "files.csv")
+        self._progress = 100
+
+    def status(self) -> str:
+        return self._status
+
+    def progress(self) -> int:
+        return self._progress
 
     @staticmethod
     def write_csv(data, output):
@@ -25,17 +39,13 @@ class PhotoModule(ModuleInterface):
 
 
 if __name__ == '__main__':
-    module = PhotoModule()
-    # print(module.logger.name)  # PhotoModule
-
     store = Store()
     store.image_store.dispatch(
         {
             'type': 'set_image',
-            'image': '/Users/Mies/Downloads/HFS.dd'
+            'image': '/Users/Mies/Documents/swag.dd'
         }
     )
 
-    ewf = Ewf()
-    data = ewf.files()
-    PhotoModule.write_csv(data, "files.csv")
+    photo_module = PhotoModule()
+    photo_module.run()

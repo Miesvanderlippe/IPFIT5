@@ -1,17 +1,15 @@
-import pytsk3
-
 from re import search, I
 from hashlib import sha256
-from sys import setrecursionlimit, exc_info
+from sys import setrecursionlimit
 from pathlib import Path as PathlibPath
 from datetime import datetime
-
 from Utils.Store import Store
-
 from typing import List, Union, Tuple
+from pytsk3 import Img_Info, Volume_Info, FS_Info, Directory, File, \
+    TSK_VS_PART_INFO, TSK_FS_META_TYPE_DIR
 
 
-class Ewf(pytsk3.Img_Info):
+class ImageHandler(Img_Info):
     def __init__(self, ) -> None:
         self.store = Store().image_store
 
@@ -22,8 +20,15 @@ class Ewf(pytsk3.Img_Info):
         self.ext = PathlibPath(self.store.get_state()).suffix.lower()[1:]
         self.search_result = None
 
+        if self.store.get_state() != 'initial':
+            self.image_handle = Img_Info(self.store.get_state())
+
     def close(self) -> None:
         self.ewf_handle.close()
+        self.logger.debug('Extension: ' + self.ext)
+
+        if self.store.get_state() != 'initial':
+            self.image_handle = Img_Info(self.store.get_state())
 
     def check_file_path(self) -> bool:
         image_path = PathlibPath(self.store.get_state())
@@ -36,10 +41,11 @@ class Ewf(pytsk3.Img_Info):
             return False
         return True
 
-    def info(self) -> pytsk3.Volume_Info:
-        # noinspection PyArgumentList
-        self.image_handle = pytsk3.Img_Info(url=self.store.get_state())
-        return pytsk3.Volume_Info(self.image_handle)
+    def info(self) -> Union[Volume_Info, None]:
+        try:
+            return Volume_Info(self.image_handle)
+        except RuntimeError:
+            return None
 
     def volume_info(self) -> List[Union[str, str]]:
         volume = self.info()
@@ -69,7 +75,7 @@ class Ewf(pytsk3.Img_Info):
         return (s[::-1].replace(old[::-1], new[::-1], 1))[::-1]
 
     @staticmethod
-    def partition_check(part: pytsk3.TSK_VS_PART_INFO) -> bool:
+    def partition_check(part: TSK_VS_PART_INFO) -> bool:
         tables_to_ignore = ['Unallocated', 'Extended', 'Primary Table']
         decoded = part.desc.decode('UTF-8')
 
@@ -79,54 +85,57 @@ class Ewf(pytsk3.Img_Info):
             if table in decoded
         )
 
-    def get_handle(self) -> Tuple[pytsk3.Volume_Info, pytsk3.Img_Info]:
+    def get_handle(self) -> Tuple[Volume_Info, Img_Info]:
         vol = self.info()
         img = self.image_handle
 
         return vol, img
 
     @staticmethod
-    def open_fs_single_vol(img: pytsk3.Img_Info, path: str) -> Union[
-        Tuple[pytsk3.FS_Info, pytsk3.Directory], Tuple[None, None]
+    def open_fs_single_vol(img: Img_Info, path: str) -> Union[
+        Tuple[FS_Info, Directory], Tuple[None, None]
     ]:
         try:
-            fs = pytsk3.FS_Info(img)
+            fs = FS_Info(img)
             # noinspection PyArgumentList
             root = fs.open_dir(path=path)
 
             return fs, root
         except IOError:
-            _, e, _ = exc_info()
-            print('[-] Unable to open FS:\n {}'.format(e))
+            pass
+            return None, None
 
+        except RuntimeError:
+            pass
             return None, None
 
     @staticmethod
-    def open_fs(img: pytsk3.Img_Info, vol: pytsk3.Volume_Info, path: str,
-                part: pytsk3.Volume_Info) -> \
-            Union[Tuple[pytsk3.FS_Info, pytsk3.Directory], Tuple[None, None]]:
+    def open_fs(img: Img_Info, vol: Volume_Info, path: str,
+                part: Volume_Info) -> \
+            Union[Tuple[FS_Info, Directory], Tuple[None, None]]:
         try:
-            fs = pytsk3.FS_Info(
+            fs = FS_Info(
                 img, offset=part.start * vol.info.block_size)
             # noinspection PyArgumentList
             root = fs.open_dir(path=path)
 
             return fs, root
         except IOError:
-            _, e, _ = exc_info()
-            print('[-] Unable to open FS:\n {}'.format(e))
+            pass
+            return None, None
 
+        except RuntimeError:
             return None, None
 
     @staticmethod
-    def nameless_dir(fs_object: pytsk3.File) -> bool:
+    def nameless_dir(fs_object: File) -> bool:
         return not hasattr(fs_object, 'info') \
             or not hasattr(fs_object.info, 'name') or not hasattr(
                 fs_object.info.name, 'name') or \
             fs_object.info.name.name.decode('UTF-8') in ['.', '..']
 
     def single_file(self, partition: int, path: str, filename: str,
-                    hashing: bool = False) -> Union[str, pytsk3.File, None]:
+                    hashing: bool = False) -> Union[str, File, None]:
         vol, img = self.get_handle()
         fs, root = None, None
 
@@ -139,20 +148,23 @@ class Ewf(pytsk3.Img_Info):
             fs, root = self.open_fs_single_vol(img, path)
 
         if fs is not None and root is not None:
-            for fs_object in root:
-                if self.nameless_dir(fs_object):
-                    continue
+            try:
+                for fs_object in root:
+                    if self.nameless_dir(fs_object):
+                        continue
+                    try:
+                        file_name = fs_object.info.name.name.decode('UTF-8')
+                        if file_name.lower() == filename.lower():
 
-                try:
-                    file_name = fs_object.info.name.name.decode('UTF-8')
+                            return self.hash_file(fs_object) if hashing else \
+                                self.read_file(fs_object)
 
-                    if file_name.lower() == filename.lower():
-                        return self.hash_file(fs_object) if hashing else \
-                            fs_object
-                except IOError:
-                    pass
+                    except IOError:
+                        pass
+            except RuntimeError:
+                pass
 
-        return None
+        return '' if hashing else None
 
     def files(self, search_str: str = None) -> \
             List[List[Union[str, datetime]]]:
@@ -178,9 +190,9 @@ class Ewf(pytsk3.Img_Info):
 
         return recursed_data
 
-    def recurse_files(self, part: int, fs: pytsk3.FS_Info,
-                      root_dir: pytsk3.Directory,
-                      dirs: List[pytsk3.Directory],
+    def recurse_files(self, part: int, fs: FS_Info,
+                      root_dir: Directory,
+                      dirs: List[Directory],
                       data: List[List[Union[str, datetime]]],
                       parent: List[str], search_str: str = None) -> \
             List[List[Union[str, datetime]]]:
@@ -198,7 +210,7 @@ class Ewf(pytsk3.Img_Info):
                     fs_object.info.name.name.decode('UTF-8'))
                 try:
                     if fs_object.info.meta.type == \
-                            pytsk3.TSK_FS_META_TYPE_DIR:
+                            TSK_FS_META_TYPE_DIR:
                         f_type = 'DIR'
                         file_ext = ''
                     else:
@@ -238,7 +250,22 @@ class Ewf(pytsk3.Img_Info):
         return data
 
     @staticmethod
-    def hash_file(fs_object: pytsk3.File) -> str:
+    def read_file(fs_object: File) -> bytes:
+        """
+        Read the bytes from an fs_object file
+        :param fs_object: fs_oject from the image
+        :return: Bytes of the fs_object file
+        """
+        offset = 0
+        size = getattr(fs_object.info.meta, "size", 0)
+
+        return fs_object.read_random(offset, size)
+
+    @staticmethod
+    def hash_file(fs_object: File) -> str:
+        if fs_object.info.meta.type == TSK_FS_META_TYPE_DIR:
+            return ''
+
         offset = 0
         buff_size = 1024 * 1024
         size = getattr(fs_object.info.meta, "size", 0)
@@ -268,7 +295,7 @@ if __name__ == '__main__':
         }
     )
 
-    ewf = Ewf()
+    ewf = ImageHandler()
 
     volume = ewf.info()
 
