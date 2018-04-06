@@ -4,6 +4,8 @@ import csv
 import networkx as nx
 import matplotlib.pyplot as plt
 from collections import defaultdict
+import math
+
 
 
 pst_file = "C:\\shit\\bramchoufoer@hotmail.com.pst"
@@ -78,7 +80,7 @@ def folderReport(message_list, folder_name):
     fout_path = makePath("map_" + folder_name + ".csv")
     #fout = open(fout_path, 'w')
     with open (fout_path, 'w',  encoding="utf-8" ,newline='') as fout:
-        header = ['from','date','delivered', 'to','sender', 'subject', 'body', 'attachment_count','header']
+        header = ['from','date','delivered', 'to', 'subject', 'body', 'attachment_count']
 
         for message in message_list:
             for head in header:
@@ -99,6 +101,7 @@ def folderReport(message_list, folder_name):
                         message['subject'] = line
 
                 del message['header']
+                del message['sender']
 
 
             except Exception as e:
@@ -209,7 +212,7 @@ def folderReport_from_to(message_list_notes, folder_name):
         except Exception as e:
             print(e)
             pass
-"""
+
 def merge_csv_addresses():
     files = [x for x in os.listdir('C:\\shit') if x.startswith('verzameling_emailadressen')]
 
@@ -246,8 +249,9 @@ def merge_csv_email_notes():
 
     for f in files:
             os.remove(os.path.join('C:\\shit', f))
-"""
 
+
+"""
 def merge_general(start, merge_into, dont_delete):
     files = [x for x in os.listdir('C:\\shit') if x.startswith(start)]
 
@@ -263,15 +267,10 @@ def merge_general(start, merge_into, dont_delete):
         else:
             if dont_delete not in f:
                 os.remove(os.path.join('C:\\shit', f))
+"""
 
 def read_from_to():
-    """
-    with open("C:\\shit\\Emails_from_to.csv") as f:
-        for line in f.readlines():
-            for word in line.split(' '):
-                if '@' in word:
-                   replaced = word.replace('<','').replace('>', '')
-    """
+
     columns = defaultdict(list)
     with open("C:\\shit\\Emails_from_to.csv") as f:
         reader = csv.DictReader(f)
@@ -279,7 +278,7 @@ def read_from_to():
             for(k,v) in row.items():
                 if v != k:
                     columns[k].append(v)
-    #print(columns["to"])
+
     froms= []
     for line in columns["from"]:
         for word in line.split(' '):
@@ -297,7 +296,6 @@ def read_from_to():
                 tos.append(replaced2)
                 break
     print(len(froms), len(tos))
-    #return(froms, tos)
     combined= []
 
     for (f, t) in zip(froms, tos):
@@ -312,14 +310,9 @@ def read_from_to():
 
             csv_fout.writerow(froms_to)
 
-        '''
-            "iets" : ....
-        '''
-
-
 
 def graph():
-    #fig = plt.figure(figsize=(50,25))
+    fig = plt.figure(figsize=(40, 15))
     with open("C:\\shit\\Gegevens_Graaf.csv", 'rt') as f:
         f = csv.reader(f)
         headers = next(f)
@@ -329,12 +322,12 @@ def graph():
     id = list(enumerate(unique_emails))
 
     links = []
-    print(emails)
+
     for row in emails:
         if len(row) > 1:
             links.append({row[0]: row[1]})
 
-    G = nx.DiGraph(directed=False)
+    G = nx.DiGraph(directed=True)
     email_node = []
     for row in id:
         email_node.append(row[0])
@@ -345,20 +338,21 @@ def graph():
         edges = list(node.items())
         G.add_edge(*edges[0])
 
-    # nx.draw(G,with_labels=True)
-    options = {
-        'node_color': 'blue',
-        'node_size': 200,
-        'width': 2,
-        'arrowstyle': '-|>',
-        'arrowsize': 5,
-    }
-    pos = nx.spring_layout(G, k=0.5, iterations=30, scale=0.8)
-    # nx.spectral_layout(G, dim=2, weight='weight', scale=0.1, center=None)
-    nx.draw_networkx(G, pos, arrows=True, **options)
 
-    plt.show(G)
-    # plt.savefig("C:\\shit\\Graaf.png", dpi=300)
+    options = {
+        'node_color': 'grey',
+        'node_size': 200,
+        'width': 1,
+        'arrowstyle': '-|>',
+        'arrowsize': 12,
+    }
+
+    pos = nx.spring_layout(G, k=5 / math.sqrt(G.order()), iterations=20)
+    nx.draw_networkx(G, pos, arrows=True, **options, edge_color='r', with_labels=False)
+    nx.draw_networkx_labels(G, pos, font_size=14)
+
+    plt.axis('off')
+    plt.savefig("C:\\shit\\Graaf.png", dpi=300)
 
 if __name__ == "__main__":
 
@@ -366,11 +360,11 @@ if __name__ == "__main__":
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
     main(pst_file)
-    merge_general(start='verzameling_emailadressen', merge_into='Alle_Email_Adressen', dont_delete=None)
-    merge_general(start='map_',merge_into='Alle_Emails_body_subject', dont_delete='Verwijderde')
-    merge_general(start='notes',merge_into='Emails_from_to', dont_delete=None)
-    #merge_csv_addresses()
-    #merge_csv_emails()
-    #merge_csv_email_notes()
+    #merge_general(start='verzameling_emailadressen', merge_into='Alle_Email_Adressen', dont_delete=None)
+    #merge_general(start='map_',merge_into='Alle_Emails_body_subject', dont_delete='Verwijderde')
+    #merge_general(start='notes',merge_into='Emails_from_to', dont_delete=None)
+    merge_csv_addresses()
+    merge_csv_emails()
+    merge_csv_email_notes()
     read_from_to()
     graph()
