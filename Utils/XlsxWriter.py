@@ -3,8 +3,6 @@ from typing import List
 
 from xlsxwriter import Workbook
 
-from Utils.Store.Credentials import CredentialStore
-
 
 class XlsxWriter:
     def __init__(self, name: str) -> None:
