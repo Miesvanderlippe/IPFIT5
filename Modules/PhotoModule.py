@@ -1,8 +1,11 @@
 from Interfaces.ModuleInterface import ModuleInterface
 from Utils.Store import Store
 from Utils.ImageHandler import ImageHandler
+from io import BytesIO
+
 import csv
 import imghdr
+import exifread
 
 
 class PhotoModule(ModuleInterface):
@@ -31,7 +34,16 @@ class PhotoModule(ModuleInterface):
                 if file is not None:
                     img_type = imghdr.what(None, h=file)
                     if img_type is not None:
-                        print(img_type)
+                        print("\n===\n{0} ({1})\n===".format(file_info[1]
+                                                          , img_type))
+
+                        exif_tags = exifread.process_file(BytesIO(file))
+
+                        for exif_key, exif_value in exif_tags.items():
+                            if exif_key not in (
+                            "JPEGThumbnail", "TIFFThumbnail", "Filename",
+                            "EXIF MakerNote") and exif_value is not None:
+                                print("{0}: {1}".format(exif_key, exif_value))
 
         self._progress = 100
 
