@@ -1,8 +1,9 @@
 from Interfaces.ModuleInterface import ModuleInterface
 from Utils.ImageHandler import ImageHandler
 from Utils.Store import Store
-from hashlib import sha256
+import hashlib
 from Utils.XlsxWriter import XlsxWriter
+import zipfile
 
 class FileModule(ModuleInterface):
 
@@ -21,7 +22,14 @@ class FileModule(ModuleInterface):
                         'Change Date',
                         'Size',
                         'File Path'
-                        ]
+        ]
+        self.lists = {
+                        'bestandjes': [],
+                        'hashes': [],
+                        'taal': [],
+                        'tijdlijn': [],
+                        'archieven': []
+        }
 
     def progress(self) -> int:
         return self._progress
@@ -33,6 +41,7 @@ class FileModule(ModuleInterface):
         data = self.imagehandling.files()
         FileModule.bestanden_lijst(self, data)
         #   FileModule.write_csv(data, "test.csv")
+
         self._progress = 100
 
     # @staticmethod
@@ -57,9 +66,22 @@ class FileModule(ModuleInterface):
             item[0:0] = [teller]
             teller += 1
             lijst.append(item)
-        print(lijst)
+        self.lists['bestandjes'] = lijst
+        # print(self.lists['bestandjes'])
 
-    def bestanden_hashen(self):
+    def archieven_uitlezen(self, data):
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
