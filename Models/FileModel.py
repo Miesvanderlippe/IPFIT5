@@ -1,16 +1,16 @@
 from datetime import datetime
 
 
-class ImageFileModel:
+class FileModel:
     """
     Little model to make handling file information from ImageHandler easier.
     """
 
     def __init__(self, file_info: []):
         """
-        Creates instance of ImageFileModel using data as returned by
+        Creates instance of FileModel using data as returned by
         ImageHandler.
-        :param file_info: The file information array from ImageFileModel
+        :param file_info: The file information array from FileModel
         """
         self.partition: str = file_info[0]
         self.partition_no: int = int(file_info[0][-1])
@@ -48,7 +48,7 @@ class ImageFileModel:
         the path.
         :return: The directory the file is in.
         """
-        return ImageFileModel.rreplace(self.path, self.file_name, '')
+        return FileModel.rreplace(self.path, self.file_name, '')
 
     @staticmethod
     def rreplace(s: str, old: str, new: str) -> str:
