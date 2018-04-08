@@ -8,9 +8,8 @@ from io import BytesIO
 
 class PhotoModel(FileModel):
 
-    def __init__(self, file_info: [], ewf: ImageHandler):
+    def __init__(self, file_info: []):
 
-        self.ewf = ewf
         self._ingested = False
         self._img_type = None
         self._meta_data = {}
@@ -45,7 +44,7 @@ class PhotoModel(FileModel):
 
     def ingest_file(self) -> None:
 
-        file = self.ewf.single_file(
+        file = ImageHandler().single_file(
             self.partition_no, self.directory,
             self.file_name, False
         )
@@ -85,7 +84,7 @@ class PhotoModel(FileModel):
         if self.hash is not None and len(self.hash) > 0:
             return self.hash
 
-        self.hash = self.ewf.single_file(
+        self.hash = ImageHandler().single_file(
             self.partition_no, self.directory,
             self.file_name, True
         )
