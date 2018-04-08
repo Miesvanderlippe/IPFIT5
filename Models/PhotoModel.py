@@ -31,6 +31,18 @@ class PhotoModel(FileModel):
 
         return self._meta_data
 
+    @property
+    def camera_model(self) -> str:
+        meta = self.img_meta
+
+        if len(meta) == 0:
+            return ""
+
+        return "{0} {1}".format(
+            meta["Image Make"] if "Image Make" in meta else "UNKNOWN CAMERA",
+            meta["Image Model"] if "Image Model" in meta else "UNKNOWN MODEL"
+        )
+
     def ingest_file(self) -> None:
 
         file = self.ewf.single_file(
@@ -86,6 +98,7 @@ class PhotoModel(FileModel):
         if self._ingested:
             if self.img_type is not None:
                 base_str += "img_type: {0}\n".format(self.img_type)
+                base_str += "camera_model: {0}\n".format(self.camera_model)
                 base_str += "img_meta:\n"
 
                 for exif_key, exif_value in self.img_meta.items():
