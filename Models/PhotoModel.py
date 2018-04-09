@@ -66,6 +66,7 @@ class PhotoModel(FileModel):
                 if meta_tag not in (
                     "JPEGThumbnail", "TIFFThumbnail",
                     "Filename", "EXIF MakerNote")
+                and not meta_tag.startswith("Thumbnail")
             }
 
         # Forgive me father for I have sinned.
