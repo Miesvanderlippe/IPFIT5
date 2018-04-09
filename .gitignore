@@ -123,3 +123,5 @@ Modules/*.txt
 Output/*.xlsx
 Output/*.csv
 
+# Ignore langdetect
+langdetect/
