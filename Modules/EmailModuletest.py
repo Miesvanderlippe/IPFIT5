@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 import math
 from Interfaces.ModuleInterface import ModuleInterface
-from Utils.Store import Store
 from Utils.ImageHandler import ImageHandler
+import pandas as pd
 
 class EmailModuleTest(ModuleInterface):
 
@@ -32,31 +32,36 @@ class EmailModuleTest(ModuleInterface):
         output_directory = os.path.abspath(self.output_directory)
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
+        self.checkxls()
         self.main(self.pst_file)
         self.merge_csv_addresses()
         self.merge_csv_emails()
         self.merge_csv_email_notes()
         self.read_from_to()
         self.graph()
+        self.convert_to_xls()
+        self.del_csv()
 
+    def checkxls(self):
+        files = [x for x in os.listdir('C:\\shit')]
+        for item in files:
+            if item.endswith(".xlsx"):
+                os.remove(os.path.join('C:\\shit', item))
 
     def main(self,pst_file):
-
-
         self.pst_name = os.path.split(pst_file)[1]
         self.file = pypff.file()
         self.file.open(self.pst_file)
         root = self.file.get_root_folder()
 
         self.folderTraverse(root)
+        print("bestand inladen....")
 
     def makePath(self,file_name):
 
         return os.path.abspath(os.path.join(self.output_directory, file_name))
 
-
     def folderTraverse(self,base):
-
 
         for folder in base.sub_folders:
 
@@ -66,7 +71,6 @@ class EmailModuleTest(ModuleInterface):
 
 
     def checkForMessages(self,folder):
-
 
         message_list = []
         message_list_notes = []
@@ -79,8 +83,10 @@ class EmailModuleTest(ModuleInterface):
         self.folderReport(message_list, folder.name)
         self.folderReport_sender(message_list, folder.name)
         self.folderReport_from_to(message_list_notes, folder.name)
+        print("Emails zoeken......")
 
     def processMessage(self,message):
+
         return {
             "subject": message.subject,
             "sender": message.sender_name,
@@ -95,7 +101,7 @@ class EmailModuleTest(ModuleInterface):
         }
 
     def folderReport(self,message_list, folder_name):
-        # CSV Report
+
         fout_path = self.makePath("map_" + folder_name + ".csv")
         #fout = open(fout_path, 'w')
         with open (fout_path, 'w',  encoding="utf-8" ,newline='') as fout:
@@ -128,6 +134,7 @@ class EmailModuleTest(ModuleInterface):
                     continue
 
             try:
+
                 csv_fout = csv.DictWriter(fout, fieldnames=header)
                 csv_fout.writeheader()
                 for x in message_list:
@@ -138,7 +145,7 @@ class EmailModuleTest(ModuleInterface):
                 pass
 
     def folderReport_sender(self,message_list, folder_name):
-        # CSV Report
+
         fout_path = self.makePath("verzameling_emailadressen"+folder_name+".csv")
         # fout = open(fout_path, 'w')
         with open(fout_path, 'w', encoding="utf-8", newline='') as fout:
@@ -173,7 +180,6 @@ class EmailModuleTest(ModuleInterface):
                     print("Error in folderreport: {}".format(e))
                     continue
 
-
             try:
                 csv_fout = csv.DictWriter(fout, fieldnames=header)
                 csv_fout.writeheader()
@@ -185,7 +191,6 @@ class EmailModuleTest(ModuleInterface):
                 pass
 
     def folderReport_from_to(self,message_list_notes, folder_name):
-        # CSV Report
 
         fout_path = self.makePath("notes_from_to"+folder_name+".csv")
         # fout = open(fout_path, 'w')
@@ -221,7 +226,6 @@ class EmailModuleTest(ModuleInterface):
                     print("Error in folderreport: {}".format(e))
                     continue
 
-
             try:
                 csv_fout = csv.DictWriter(fout, fieldnames=header)
                 csv_fout.writeheader()
@@ -233,8 +237,8 @@ class EmailModuleTest(ModuleInterface):
                 pass
 
     def merge_csv_addresses(self):
-        files = [x for x in os.listdir('C:\\shit') if x.startswith('verzameling_emailadressen')]
 
+        files = [x for x in os.listdir('C:\\shit') if x.startswith('verzameling_emailadressen')]
         with open('C:\\shit\\Alle_Email_Adressen.csv', 'wb') as out:
             for x in files:
                 f_path = os.path.join('C:\\shit', x)
@@ -245,6 +249,7 @@ class EmailModuleTest(ModuleInterface):
             os.remove(os.path.join('C:\\shit', f))
 
     def merge_csv_emails(self):
+
         files = [x for x in os.listdir('C:\\shit') if x.startswith('map_')]
 
         with open('C:\\shit\\Alle_Emails_body_subject.csv', 'wb') as out:
@@ -258,8 +263,8 @@ class EmailModuleTest(ModuleInterface):
                 os.remove(os.path.join('C:\\shit', f))
 
     def merge_csv_email_notes(self):
-        files = [x for x in os.listdir('C:\\shit') if x.startswith('notes')]
 
+        files = [x for x in os.listdir('C:\\shit') if x.startswith('notes')]
         with open('C:\\shit\\Emails_from_to.csv', 'wb') as out:
             for x in files:
                 f_path = os.path.join('C:\\shit', x)
@@ -271,6 +276,7 @@ class EmailModuleTest(ModuleInterface):
 
     def read_from_to(self):
 
+        print("Mergen......")
         columns = defaultdict(list)
         with open("C:\\shit\\Emails_from_to.csv") as f:
             reader = csv.DictReader(f)
@@ -292,25 +298,35 @@ class EmailModuleTest(ModuleInterface):
             for d in x.split(' '):
                 if '@' in d:
                     replaced2 = d.replace('<', '').replace('>', '').replace(r'"', '').strip()
-                    print(replaced2)
+                    #print(replaced2)
                     tos.append(replaced2)
                     break
-        print(len(froms), len(tos))
+        #print(len(froms), len(tos))
         combined= []
+        #xlslijst = []
 
         for (f, t) in zip(froms, tos):
             combined.append({"from" : f,"to": t})
+           #xlslijst.append([f, t])
 
         fout_path = self.makePath("Gegevens_Graaf.csv")
         with open(fout_path, 'w') as fout:
-            header = ['from','to']
+            header = ['from', 'to']
             csv_fout = csv.DictWriter(fout, fieldnames=header)
             csv_fout.writeheader()
             for froms_to in combined:
 
                 csv_fout.writerow(froms_to)
 
+        #xslx_writer = XlsxWriter("JOHANNES")
+        #xslx_writer.add_worksheet("SWAGMEISTER4000")
+
+        #xslx_writer.write_headers("SWAGMEISTER4000", ['from', 'to'])
+        #xslx_writer.write_items("SWAGMEISTER4000", xlslijst)
+
     def graph(self):
+
+        print("Graaf maken.....")
         fig = plt.figure(figsize=(40, 15))
         with open("C:\\shit\\Gegevens_Graaf.csv", 'rt') as f:
             f = csv.reader(f)
@@ -353,18 +369,48 @@ class EmailModuleTest(ModuleInterface):
         plt.axis('off')
         plt.savefig("C:\\shit\\Graaf.png", dpi=300)
 
+        print("Alle CSV bestanden naar XLSX converten.......")
+
+    def convert_to_xls(self):
+
+        filename = 'C:\\shit\\Alle_Emails_body_subject.xlsx'
+        with open(filename, 'w'):
+            df_new = pd.read_csv('C:\\shit\\Alle_Emails_body_subject.csv')
+            writer = pd.ExcelWriter(filename)
+            df_new.to_excel(writer, index=False)
+            writer.save()
+
+
+        filename_two = 'C:\\shit\\Alle_Email_Adressen.xlsx'
+        with open(filename_two, 'w', encoding="utf-8"):
+            df_new = pd.read_csv('C:\\shit\\Alle_Email_Adressen.csv')
+            writer = pd.ExcelWriter(filename_two)
+            df_new.to_excel(writer, index=False)
+            writer.save()
+
+
+        filename_three = 'C:\\shit\\Emails_from_to.xlsx'
+        with open(filename_three, 'w', encoding="utf-8"):
+            df_new = pd.read_csv('C:\\shit\\Emails_from_to.csv')
+            writer = pd.ExcelWriter(filename_three)
+            df_new.to_excel(writer, index=False)
+            writer.save()
+
+        filename_four = 'C:\\shit\\map_Verwijderde items.xlsx'
+        with open(filename_four, 'w', encoding="utf-8"):
+            df_new = pd.read_csv('C:\\shit\\map_Verwijderde items.csv')
+            writer = pd.ExcelWriter(filename_four)
+            df_new.to_excel(writer, index=False)
+            writer.save()
+
+    def del_csv(self):
+        files = [x for x in os.listdir('C:\\shit')]
+        for item in files:
+            if item.endswith(".csv"):
+                os.remove(os.path.join('C:\\shit', item))
+
+        print("Klaar...!")
 
 if __name__ == "__main__":
-    """
-    output_directory = os.path.abspath(output_directory)
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
-    main(pst_file)
-    merge_csv_addresses()
-    merge_csv_emails()
-    merge_csv_email_notes()
-    read_from_to()
-    graph()
-    """
     module = EmailModuleTest()
     module.run()

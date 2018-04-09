@@ -3,7 +3,7 @@ from typing import List
 
 from xlsxwriter import Workbook
 
-from Utils.Store.Credentials import CredentialStore
+# from Utils.Store.Credentials import CredentialStore
 
 
 class XlsxWriter:
@@ -25,8 +25,10 @@ class XlsxWriter:
         config_path = Path(__file__).parent.parent.joinpath('Output')
         Path.mkdir(Path(config_path), exist_ok=True)
 
-        credentials = CredentialStore()
-        case = credentials.credential_store.get_state().get('case')
+        #credentials = CredentialStore()
+        #case = credentials.credential_store.get_state().get('case')
+
+        case = "001"
 
         # Make case folder
         case_path = Path(config_path.joinpath(case))
@@ -34,7 +36,7 @@ class XlsxWriter:
 
         return str(
             case_path.joinpath('{}-{}.xlsx'.format(
-                credentials.time,
+                "001010101011",
                 name.replace(' ', '-')
             ))
         )
