@@ -35,6 +35,10 @@ class PhotoModule(ModuleInterface):
 
             files.extend(results)
 
+        cameras = PhotoModule.get_cameras(files)
+
+        print("\n".join(cameras))
+
         with open("test.txt", "w") as test_file:
             for photo_model in files:
                 try:
@@ -51,12 +55,20 @@ class PhotoModule(ModuleInterface):
         return self._progress
 
     @staticmethod
+    def get_cameras(files: []) -> ():
+        return set([
+            x.camera_model
+            for x in files
+            if x.is_image
+        ])
+
+    @staticmethod
     def ingest_file(file_info: []) -> PhotoModel:
         model = PhotoModel(file_info)
 
         try:
             model.ingest_file()
-            print("Ingested {0}".format(model.file_name))
+            # print("Ingested {0}".format(model.file_name))
         except Exception as e:
             print("Couldn't ingest {0}".format(model.file_name))
             print(e)
@@ -69,7 +81,7 @@ if __name__ == '__main__':
     store.image_store.dispatch(
         {
             'type': 'set_image',
-            'image': '/Users/Mies/Documents/usb_with_images.dd'
+            'image': '/Users/Mies/Documents/lubuntu.dd'
         }
     )
 

@@ -17,6 +17,10 @@ class PhotoModel(FileModel):
         super().__init__(file_info)
 
     @property
+    def is_image(self) -> bool:
+        return self.img_type is not None
+
+    @property
     def img_type(self) -> str:
         if not self._ingested:
             self.ingest_file()
@@ -35,11 +39,21 @@ class PhotoModel(FileModel):
         meta = self.img_meta
 
         if len(meta) == 0:
-            return ""
+            return "UNKNOWN CAMERA UNKNOWN MODEL"
+
+        camera_make = str(
+            meta["Image Make"] if "Image Make" in meta
+            and len(str(meta["Image Make"]).strip()) > 0 else "UNKNOWN CAMERA"
+        ).strip()
+
+        camera_model = str(
+            meta["Image Model"] if "Image Model" in meta
+            and len(str(meta["Image Model"]).strip()) > 0 else "UNKNOWN MODEL"
+        ).replace(camera_make, "").replace("-", "").strip()
 
         return "{0} {1}".format(
-            meta["Image Make"] if "Image Make" in meta else "UNKNOWN CAMERA",
-            meta["Image Model"] if "Image Model" in meta else "UNKNOWN MODEL"
+            camera_make,
+            camera_model
         )
 
     def ingest_file(self) -> None:
