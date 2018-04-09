@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List
 
 from xlsxwriter import Workbook
+from Utils.Store import Store
 
 
 class XlsxWriter:
@@ -23,16 +24,15 @@ class XlsxWriter:
         config_path = Path(__file__).parent.parent.joinpath('Output')
         Path.mkdir(Path(config_path), exist_ok=True)
 
-        credentials = CredentialStore()
-        case = credentials.credential_store.get_state().get('case')
+        credentials = Store().credential_store.get_state()
+        case = credentials["case"]
 
         # Make case folder
         case_path = Path(config_path.joinpath(case))
         Path.mkdir(Path(case_path), exist_ok=True)
 
         return str(
-            case_path.joinpath('{}-{}.xlsx'.format(
-                credentials.time,
+            case_path.joinpath('{}.xlsx'.format(
                 name.replace(' ', '-')
             ))
         )
