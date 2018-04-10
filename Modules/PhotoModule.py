@@ -3,12 +3,15 @@ from Utils.Store import Store
 from Utils.ImageHandler import ImageHandler
 from Models.PhotoModel import PhotoModel
 from multiprocessing import Pool, cpu_count
+from Utils.XlsxWriter import XlsxWriter
 from time import sleep
 
 
 class PhotoModule(ModuleInterface):
     def __init__(self) -> None:
         self.ewf = ImageHandler()
+        self.cameras = []
+        self.files = []
         self._status = "Initialised"
         self._progress = 0
 
@@ -16,7 +19,6 @@ class PhotoModule(ModuleInterface):
 
     def run(self) -> None:
         data = self.ewf.files()
-        files = []
 
         for partition in data:
             partition_length = len(partition)
@@ -33,19 +35,10 @@ class PhotoModule(ModuleInterface):
                 while partition_length != len(results):
                     sleep(0.05)
 
-            files.extend(results)
+                self.files.extend(results)
 
-        cameras = PhotoModule.get_cameras(files)
-
-        print("\n".join(cameras))
-
-        with open("test.txt", "w") as test_file:
-            for photo_model in files:
-                try:
-                    test_file.write(str(photo_model))
-                except Exception as e:
-                    print(e)
-
+        self.cameras = PhotoModule.get_cameras(self.files)
+        self.create_export()
         self._progress = 100
 
     def status(self) -> str:
@@ -54,6 +47,18 @@ class PhotoModule(ModuleInterface):
     def progress(self) -> int:
         return self._progress
 
+    def create_export(self) -> None:
+        # xslx_writer = XlsxWriter("Photos")
+
+        for camera in self.cameras:
+            print("\nCamera: {0}\n".format(camera))
+            print("\n".join(
+                [
+                    str(x) for x in
+                    PhotoModule.get_files_by_cam(self.files, camera)
+                ]
+            ))
+
     @staticmethod
     def get_cameras(files: []) -> ():
         return set([
@@ -61,6 +66,15 @@ class PhotoModule(ModuleInterface):
             for x in files
             if x.is_image
         ])
+
+    @staticmethod
+    def get_files_by_cam(files: [], camera_model: str) -> []:
+        return [
+            x
+            for x in files
+            if x.is_image and
+            x.camera_model == camera_model
+        ]
 
     @staticmethod
     def ingest_file(file_info: []) -> PhotoModel:
