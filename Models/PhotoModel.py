@@ -8,6 +8,15 @@ from io import BytesIO
 
 class PhotoModel(FileModel):
 
+    worksheet_headers = [
+        "Full path",
+        "File name",
+        "Camera used",
+        "True image type",
+        "image_headers",
+        "Hash"
+    ]
+
     def __init__(self, file_info: []):
 
         self._ingested = False
@@ -105,6 +114,19 @@ class PhotoModel(FileModel):
         )
 
         return self.hash
+
+    @property
+    def worksheet_columns(self) -> []:
+        return [
+            self.path,
+            self.file_name,
+            self.camera_model,
+            str(self.img_type),
+            " - ".join(
+                ["{0}: {1}".format(x, y) for x, y in self.img_meta.items()]
+            ),
+            self.hash
+        ]
 
     def __str__(self):
         base_str = super().__str__() + "\n"

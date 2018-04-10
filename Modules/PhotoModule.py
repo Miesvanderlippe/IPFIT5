@@ -11,34 +11,42 @@ from time import sleep
 class PhotoModule(ModuleInterface):
     def __init__(self) -> None:
         self.ewf = ImageHandler()
-        self.cameras = []
+        self.cameras = set()
+        self.images_by_camera = {}
         self.files = []
         self._status = "Initialised"
         self._progress = 0
 
+        self._xlsx_writer = None
+
         super().__init__()
+
+    @property
+    def xlsx_writer(self) -> XlsxWriter:
+        if self._xlsx_writer is None:
+            self._xlsx_writer = XlsxWriter("PhotosModule")
+
+        return self._xlsx_writer
 
     def run(self) -> None:
         data = self.ewf.files()
+        total_results = 0
 
         for partition in data:
             partition_length = len(partition)
+            total_results += partition_length
 
             with Pool(processes=cpu_count()) as pool:
-                results = []
                 [
                     pool.apply_async(self.ingest_file, (x,),
-                                     callback=results.append,
+                                     callback=self.after_ingest,
                                      error_callback=print)
                     for x in partition
                 ]
 
-                while partition_length != len(results):
+                while total_results != len(self.files):
                     sleep(0.05)
 
-                self.files.extend(results)
-
-        self.cameras = PhotoModule.get_cameras(self.files)
         self.create_export()
         self._progress = 100
 
@@ -49,16 +57,32 @@ class PhotoModule(ModuleInterface):
         return self._progress
 
     def create_export(self) -> None:
-        # xslx_writer = XlsxWriter("Photos")
 
         for camera in self.cameras:
-            print("\nCamera: {0}\n".format(camera))
-            print("\n".join(
-                [
-                    str(x) for x in
-                    PhotoModule.get_files_by_cam(self.files, camera)
-                ]
-            ))
+            self.xlsx_writer.add_worksheet(camera)
+
+            self.xlsx_writer.write_headers(camera, PhotoModel.worksheet_headers)
+
+            self.xlsx_writer.write_items(camera, [
+                x.worksheet_columns for x in self.images_by_camera[camera]
+            ])
+
+        self.xlsx_writer.close()
+
+    def after_ingest(self, file_model: PhotoModel) -> None:
+
+        self.files.append(file_model)
+
+        if file_model.is_image:
+            camera_model = file_model.camera_model
+
+            self.cameras.add(camera_model)
+
+            if camera_model not in self.images_by_camera.keys():
+                self.images_by_camera[camera_model] = []
+
+            self.images_by_camera[camera_model].append(file_model)
+
 
     @staticmethod
     def get_cameras(files: []) -> ():
@@ -96,7 +120,7 @@ if __name__ == '__main__':
     store.image_store.dispatch(
         {
             'type': 'set_image',
-            'image': '/Users/Mies/Documents/lubuntu.dd'
+            'image': '/Users/Mies/Documents/usb_with_images.dd'
         }
     )
 
