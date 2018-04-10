@@ -9,7 +9,7 @@ from pytsk3 import Img_Info, Volume_Info, FS_Info, Directory, File, \
     TSK_VS_PART_INFO, TSK_FS_META_TYPE_DIR
 
 
-class ImageHandler(Img_Info):
+class ImageHandler:
     def __init__(self, ) -> None:
         self.store = Store().image_store
 
