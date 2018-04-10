@@ -256,6 +256,7 @@ class ImageHandler(Img_Info):
         :param fs_object: fs_oject from the image
         :return: Bytes of the fs_object file
         """
+
         offset = 0
         size = getattr(fs_object.info.meta, "size", 0)
 

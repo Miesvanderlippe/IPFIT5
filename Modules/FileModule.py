@@ -1,9 +1,13 @@
 from Interfaces.ModuleInterface import ModuleInterface
 from Utils.ImageHandler import ImageHandler
 from Utils.Store import Store
+from Models.ArchiveModel import ArchiveModel
+from Models.FileModel import FileModel
+from multiprocessing import Pool, cpu_count
 import hashlib
 from Utils.XlsxWriter import XlsxWriter
 import zipfile
+from time import sleep
 
 class FileModule(ModuleInterface):
 
@@ -23,13 +27,8 @@ class FileModule(ModuleInterface):
                         'Size',
                         'File Path'
         ]
-        self.lists = {
-                        'bestandjes': [],
-                        'hashes': [],
-                        'taal': [],
-                        'tijdlijn': [],
-                        'archieven': []
-        }
+        self.bestandslijst = []
+
 
     def progress(self) -> int:
         return self._progress
@@ -40,48 +39,24 @@ class FileModule(ModuleInterface):
     def run(self) -> None:
         data = self.imagehandling.files()
         FileModule.bestanden_lijst(self, data)
-        #   FileModule.write_csv(data, "test.csv")
 
         self._progress = 100
 
-    # @staticmethod
-    # def write_csv(data, output):
-    #     if not data:
-    #         return
-    #
-    #     with open(output, 'w', encoding="utf-8") as csvfile:
-    #         csv_writer = csv.writer(csvfile)
-    #         headers = ['Partition', 'File', 'File Ext', 'File Type',
-    #                    'Create Date', 'Modify Date', 'Change Date', 'Size',
-    #                    'File Path', 'Hash']
-    #         csv_writer.writerow(headers)
-    #         for result_list in data:
-    #             csv_writer.writerows(result_list)
-
-
     def bestanden_lijst(self, data):
-        lijst = []
-        teller = 0
-        for item in data[0]:
-            item[0:0] = [teller]
-            teller += 1
-            lijst.append(item)
-        self.lists['bestandjes'] = lijst
-        # print(self.lists['bestandjes'])
+        for partition in data:
+             for file_info in partition:
+                model = ArchiveModel(file_info)
+                model.get_hash()
+                print(model)
+
+    @staticmethod
+    def best_lijst(file_info: []) -> ArchiveModel:
+        model = ArchiveModel(file_info)
+        model.get_hash()
+        print(model)
 
     def archieven_uitlezen(self, data):
-
-
-
-
-
-
-
-
-
-
-
-
+        pass
 
 
 if __name__ == '__main__':
