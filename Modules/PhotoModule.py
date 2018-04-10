@@ -1,11 +1,17 @@
+from os import name
 from Interfaces.ModuleInterface import ModuleInterface
 from Utils.Store import Store
 from Utils.ImageHandler import ImageHandler
 from Models.PhotoModel import PhotoModel
-from multiprocessing.pool import ThreadPool as Pool
 from multiprocessing import cpu_count
 from Utils.XlsxWriter import XlsxWriter
 from time import sleep
+
+
+if name == "nt":
+    from multiprocessing.pool import ThreadPool as Pool
+else:
+    from multiprocessing import Pool
 
 
 class PhotoModule(ModuleInterface):
@@ -130,7 +136,7 @@ if __name__ == '__main__':
     store.image_store.dispatch(
         {
             'type': 'set_image',
-            'image': '/Users/Mies/Documents/usb_with_images.dd'
+            'image': '/Users/Mies/Documents/lubuntu.dd'
         }
     )
 
