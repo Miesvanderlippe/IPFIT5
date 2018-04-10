@@ -2,7 +2,8 @@ from Interfaces.ModuleInterface import ModuleInterface
 from Utils.Store import Store
 from Utils.ImageHandler import ImageHandler
 from Models.PhotoModel import PhotoModel
-from multiprocessing import Pool, cpu_count
+from multiprocessing.pool import ThreadPool as Pool
+from multiprocessing import cpu_count
 from Utils.XlsxWriter import XlsxWriter
 from time import sleep
 
