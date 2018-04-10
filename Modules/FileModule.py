@@ -10,6 +10,8 @@ from Utils.XlsxWriter import XlsxWriter
 import zipfile
 from time import sleep
 from io import BytesIO
+import tarfile, io
+
 
 class FileModule(ModuleInterface):
 
@@ -30,7 +32,10 @@ class FileModule(ModuleInterface):
                         'File Path'
         ]
         self.bestandslijst = []
-
+        self.inhoud_zip_bestanden = []
+        self.info_zip_bestanden = []
+        self.info_tar_bestanden = []
+        self.inhoud_tar_bestanden = []
 
     def progress(self) -> int:
         return self._progress
@@ -41,8 +46,10 @@ class FileModule(ModuleInterface):
     def run(self) -> None:
         data = self.imagehandling.files()
         #FileModule.bestanden_lijst(self, data)
-        FileModule.zip_bestanden(self, data)
-        #FileModule.wegschrijven_bestandlist(self)
+        FileModule.inhoud_zip_archieven(self, data)
+        FileModule.namen_zip_archieven(self, data)
+        FileModule.namen_tar_archieven(self, data)
+        FileModule.inhoud_tar_archieven(self, data)
 
         self._progress = 100
 
@@ -68,33 +75,51 @@ class FileModule(ModuleInterface):
         model.get_hash()
         #print(model)
 
-    def zip_bestanden(self, data):
-        for partition in data:
+    def inhoud_zip_archieven(self, data):
+         data = self.imagehandling.files("\\.zip$")
+         for partition in data:
+             for file_info in partition:
+                file_model = FileModel(file_info)
+                file_bytes = ImageHandler().single_file(file_model.partition_no, file_model.directory,
+                                                        file_model.file_name, False)
+                bestand = BytesIO(file_bytes)
+                zipbestand = zipfile.ZipFile(bestand)
+                self.inhoud_zip_bestanden.extend(zipbestand.filelist)
+                #print(self.inhoud_zip_bestanden)
+
+    def namen_zip_archieven(self, data):
+         for partition in data:
             for file_info in partition:
                 bestanden = ArchiveModel(file_info)
                 if bestanden.file_name.endswith(".zip"):
-                    print(bestanden)
+                    self.info_zip_bestanden.append(bestanden.file_name)
+         #print(self.info_zip_bestanden)
 
 
 
+    def inhoud_tar_archieven(self, data):
+        data = self.imagehandling.files("\\.tar.gz$")
+        result = []
+        for partition in data:
+            for file_info in partition:
+                file_model = FileModel(file_info)
+                file_bytes = ImageHandler().single_file(file_model.partition_no, file_model.directory,
+                                                        file_model.file_name, False)
+                bestand = BytesIO(file_bytes)
+                tarbestand = tarfile.open(None,"r:gz",fileobj=bestand)
+                self.inhoud_tar_bestanden.append(tarbestand.list(verbose=False))
+                #print(self.inhoud_tar_bestanden)
+                # self.inhoud_tar_bestanden.extend(tarbestand.getnames())
+                # print(self.inhoud_tar_bestanden)
 
 
-
-
-
-
-
-
-
-
-
-
-
-    #def wegschrijven_bestandlist(self):
-        # xslx_writer = XlsxWriter("BestandsModule")
-        # xslx_writer.add_worksheet("BestandsLijst")
-        # xslx_writer.write_headers("BestandsLijst", self.headers)
-        # xslx_writer.write_items("BestandsLijst", self.bestandslijst)
+    def namen_tar_archieven(self, data):
+        for partition in data:
+            for file_info in partition:
+                files = ArchiveModel(file_info)
+                if files.file_name.endswith(".tar.gz"):
+                    self.info_tar_bestanden.append(files.file_name)
+        #print(self.info_tar_bestanden)
 
 
 
