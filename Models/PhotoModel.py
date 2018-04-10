@@ -7,7 +7,12 @@ from io import BytesIO
 
 
 class PhotoModel(FileModel):
+    """
+    Model that holds file values for PhotoModule. Does some data manipulation
+    and extracts values from files in image.
+    """
 
+    # Headers for Excel worksheet
     worksheet_headers = [
         "Full path",
         "File name",
@@ -18,7 +23,10 @@ class PhotoModel(FileModel):
     ]
 
     def __init__(self, file_info: []):
-
+        """
+        Initiates PhotoModel using file_info & parent constructor
+        :param file_info: file_info array from ImageHandler
+        """
         self._ingested = False
         self._img_type = None
         self._meta_data = {}
@@ -27,10 +35,20 @@ class PhotoModel(FileModel):
 
     @property
     def is_image(self) -> bool:
+        """
+        Whether the file is an image.
+        Ingests file when it's not ingested yet.
+        :return: Whether the file is an image.
+        """
         return self.img_type is not None
 
     @property
     def img_type(self) -> str:
+        """
+        Returns the true type of an image using imghdr.
+        Ingests image when it's not ingested yet.
+        :return: the image type
+        """
         if not self._ingested:
             self.ingest_file()
 
@@ -38,6 +56,12 @@ class PhotoModel(FileModel):
 
     @property
     def img_meta(self) -> {}:
+        """
+        Returns the meta data of an image. Returns empty dict when file is not
+        an image
+        Ingests image when it's not ingested yet.
+        :return: dict with meta data (key: value). Type of value is variable.
+        """
         if not self._ingested:
             self.ingest_file()
 
@@ -45,6 +69,11 @@ class PhotoModel(FileModel):
 
     @property
     def camera_model(self) -> str:
+        """
+        Builds the camera model from meta data.
+        Ingests image when it's not ingested yet.
+        :return: Camera make and model
+        """
         meta = self.img_meta
 
         if len(meta) == 0:
@@ -66,7 +95,10 @@ class PhotoModel(FileModel):
         )
 
     def ingest_file(self) -> None:
-
+        """
+        Gets image meta, true image type & hash from image. This can be very
+        slow.
+        """
         file = ImageHandler().single_file(
             self.partition_no, self.directory,
             self.file_name, False
@@ -75,6 +107,7 @@ class PhotoModel(FileModel):
         if file is None:
             return None
 
+        # may remove this in the future.
         self.get_hash()
 
         self._img_type = imghdr.what(None, h=file)
@@ -86,13 +119,14 @@ class PhotoModel(FileModel):
                 meta_tag: meta_value
                 for meta_tag, meta_value
                 in exif_tags.items()
+                # These tags just contain binary data or non-interesting data.
                 if meta_tag not in (
                     "JPEGThumbnail", "TIFFThumbnail",
                     "Filename", "EXIF MakerNote")
+                # Filter other thumbnail data
                 and not meta_tag.startswith("Thumbnail")
             }
 
-        # Forgive me father for I have sinned.
         self._ingested = True
 
     def get_hash(self) -> str:
@@ -117,6 +151,11 @@ class PhotoModel(FileModel):
 
     @property
     def worksheet_columns(self) -> []:
+        """
+        Returns some of the data in model according to columns in
+        PhotoModel.worksheet_columns.
+        :return: The data in a list.
+        """
         return [
             self.path,
             self.file_name,
