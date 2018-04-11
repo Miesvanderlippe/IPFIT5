@@ -7,6 +7,8 @@ from multiprocessing import cpu_count
 from Utils.XlsxWriter import XlsxWriter
 from time import sleep
 
+import re
+
 
 if name == "nt":
     from multiprocessing.pool import ThreadPool as Pool
@@ -86,12 +88,20 @@ class PhotoModule(ModuleInterface):
         """
         Generate the expected outputs
         """
+        prefix = 0
+
         for camera in self.cameras:
-            self.xlsx_writer.add_worksheet(camera)
 
-            self.xlsx_writer.write_headers(camera, PhotoModel.worksheet_headers)
+            prefix += 1
 
-            self.xlsx_writer.write_items(camera, [
+            camera_key = "{0:03d} {1}".format(prefix, camera[0:25])
+
+            self.xlsx_writer.add_worksheet(camera_key)
+
+            self.xlsx_writer.write_headers(camera_key,
+                                           PhotoModel.worksheet_headers)
+
+            self.xlsx_writer.write_items(camera_key, [
                 x.worksheet_columns for x in self.images_by_camera[camera]
             ])
 
@@ -113,7 +123,6 @@ class PhotoModule(ModuleInterface):
                 self.images_by_camera[camera_model] = []
 
             self.images_by_camera[camera_model].append(file_model)
-
 
     @staticmethod
     def ingest_file(file_info: []) -> PhotoModel:
