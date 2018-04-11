@@ -116,5 +116,5 @@ Configs/*.cfg
 *.csv
 
 # Output files
-Output/*.xlsx
-Output/*.csv
+Output/**/*.xlsx
+Output/**/*.csv
