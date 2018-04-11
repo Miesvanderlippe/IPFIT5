@@ -8,15 +8,22 @@ import math
 from Interfaces.ModuleInterface import ModuleInterface
 from Utils.ImageHandler import ImageHandler
 import pandas as pd
+from Utils.Store import Store
+from Models.FileModel import FileModel
+from io import BytesIO
+from io import StringIO
+import imghdr
+import exifread
+
 
 class EmailModuleTest(ModuleInterface):
 
     def __init__(self) -> None:
         super().__init__()
-        self.imagehandling = ImageHandler()
+        self.ewf = ImageHandler()
         self._status = "Initialised"
         self._progress = 0
-        self.pst_file = "C:\\shit\\bramchoufoer@hotmail.com.pst"
+        #self.pst_file = "C:\\shit\\bramchoufoer@hotmail.com.pst"
         self.output_directory = "C:\\shit"
 
     def progress(self) -> int:
@@ -29,9 +36,21 @@ class EmailModuleTest(ModuleInterface):
         #output_directory = "C:\\shit"
 
     def run(self):
+
         output_directory = os.path.abspath(self.output_directory)
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
+        data = self.ewf.files("\\.pst$")
+        for partition in data:
+            for file_info in partition:
+                file_model = FileModel(file_info)
+                file_bytes = ImageHandler().single_file(
+                    file_model.partition_no, file_model.directory,
+                    file_model.file_name, False
+                )
+                self.pst_file = BytesIO(file_bytes)
+
+
         self.checkxls()
         self.main(self.pst_file)
         self.merge_csv_addresses()
@@ -49,10 +68,10 @@ class EmailModuleTest(ModuleInterface):
                 os.remove(os.path.join('C:\\shit', item))
 
     def main(self,pst_file):
-        self.pst_name = os.path.split(pst_file)[1]
-        self.file = pypff.file()
-        self.file.open(self.pst_file)
-        root = self.file.get_root_folder()
+        file_object = self.pst_file
+        pff_file = pypff.file()
+        pff_file.open_file_object(file_object)
+        root = pff_file.get_root_folder()
 
         self.folderTraverse(root)
         print("bestand inladen....")
@@ -91,7 +110,7 @@ class EmailModuleTest(ModuleInterface):
             "subject": message.subject,
             "sender": message.sender_name,
             "header": message.transport_headers,
-            "body": message.plain_text_body.decode(),
+            "body": message.plain_text_body,
             "attachment_count": message.number_of_attachments,
         }
 
@@ -303,11 +322,12 @@ class EmailModuleTest(ModuleInterface):
                     break
         #print(len(froms), len(tos))
         combined= []
-        #xlslijst = []
+        xlslijst = []
 
         for (f, t) in zip(froms, tos):
             combined.append({"from" : f,"to": t})
-           #xlslijst.append([f, t])
+            xlslijst.append(froms)
+            xlslijst.append(tos)
 
         fout_path = self.makePath("Gegevens_Graaf.csv")
         with open(fout_path, 'w') as fout:
@@ -317,12 +337,6 @@ class EmailModuleTest(ModuleInterface):
             for froms_to in combined:
 
                 csv_fout.writerow(froms_to)
-
-        #xslx_writer = XlsxWriter("JOHANNES")
-        #xslx_writer.add_worksheet("SWAGMEISTER4000")
-
-        #xslx_writer.write_headers("SWAGMEISTER4000", ['from', 'to'])
-        #xslx_writer.write_items("SWAGMEISTER4000", xlslijst)
 
     def graph(self):
 
@@ -412,5 +426,12 @@ class EmailModuleTest(ModuleInterface):
         print("Klaar...!")
 
 if __name__ == "__main__":
+    store = Store()
+    store.image_store.dispatch(
+        {
+            'type': 'set_image',
+            'image': 'C:\\shit2\\lubuntu.dd'
+        }
+    )
     module = EmailModuleTest()
     module.run()
