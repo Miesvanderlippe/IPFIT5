@@ -1,54 +1,128 @@
+from os import name
 from Interfaces.ModuleInterface import ModuleInterface
 from Utils.Store import Store
 from Utils.ImageHandler import ImageHandler
 from Models.PhotoModel import PhotoModel
-from multiprocessing import Pool, cpu_count
+from multiprocessing import cpu_count
+from Utils.XlsxWriter import XlsxWriter
 from time import sleep
+
+import re
+
+
+if name == "nt":
+    from multiprocessing.pool import ThreadPool as Pool
+else:
+    from multiprocessing import Pool
 
 
 class PhotoModule(ModuleInterface):
     def __init__(self) -> None:
         self.ewf = ImageHandler()
+        self.cameras = set()
+        self.images_by_camera = {}
+        self.files = []
+
         self._status = "Initialised"
         self._progress = 0
+        self._xlsx_writer = None
 
         super().__init__()
 
+    @property
+    def xlsx_writer(self) -> XlsxWriter:
+        """
+        Returns an instance of XLSX writer and creates one if none exist.
+        :return: xlsxwriter
+        """
+        if self._xlsx_writer is None:
+            self._xlsx_writer = XlsxWriter("PhotosModule")
+
+        return self._xlsx_writer
+
     def run(self) -> None:
+        """
+        Runs the module.
+        """
+        # Get partitions & files
         data = self.ewf.files()
-        files = []
+
+        # nr of results we expect (used later on)
+        total_results = 0
 
         for partition in data:
+            # expand results to be expected, we'll wait on the results to get
+            # to this number
             partition_length = len(partition)
+            total_results += partition_length
 
             with Pool(processes=cpu_count()) as pool:
-                results = []
                 [
                     pool.apply_async(self.ingest_file, (x,),
-                                     callback=results.append,
-                                     error_callback=print)
+                                     callback=self.after_ingest,
+                                     error_callback=print)  # TODO: Logger
                     for x in partition
                 ]
 
-                while partition_length != len(results):
+                while total_results != len(self.files):
                     sleep(0.05)
 
-            files.extend(results)
-
-        with open("test.txt", "w") as test_file:
-            for photo_model in files:
-                try:
-                    test_file.write(str(photo_model))
-                except Exception as e:
-                    print(e)
-
+        self.create_export()
         self._progress = 100
 
     def status(self) -> str:
+        """
+        Should return what the moduel is doing.
+        :return: str, current job
+        """
         return self._status
 
     def progress(self) -> int:
+        """
+        Current progression (0-100)
+        :return: int, percentage to done
+        """
         return self._progress
+
+    def create_export(self) -> None:
+        """
+        Generate the expected outputs
+        """
+        prefix = 0
+
+        for camera in self.cameras:
+
+            prefix += 1
+
+            camera_key = "{0:03d} {1}".format(prefix, camera[0:25])
+
+            self.xlsx_writer.add_worksheet(camera_key)
+
+            self.xlsx_writer.write_headers(camera_key,
+                                           PhotoModel.worksheet_headers)
+
+            self.xlsx_writer.write_items(camera_key, [
+                x.worksheet_columns for x in self.images_by_camera[camera]
+            ])
+
+        self.xlsx_writer.close()
+
+    def after_ingest(self, file_model: PhotoModel) -> None:
+        """
+        Keeps the camera models & pictures by camera lists up to date.
+        :param file_model: The file after ingestion
+        """
+        self.files.append(file_model)
+
+        if file_model.is_image:
+            camera_model = file_model.camera_model
+
+            self.cameras.add(camera_model)
+
+            if camera_model not in self.images_by_camera.keys():
+                self.images_by_camera[camera_model] = []
+
+            self.images_by_camera[camera_model].append(file_model)
 
     @staticmethod
     def ingest_file(file_info: []) -> PhotoModel:
@@ -56,8 +130,10 @@ class PhotoModule(ModuleInterface):
 
         try:
             model.ingest_file()
-            print("Ingested {0}".format(model.file_name))
+            # TODO: Logger
+            # print("Ingested {0}".format(model.file_name))
         except Exception as e:
+            # TODO: Logger
             print("Couldn't ingest {0}".format(model.file_name))
             print(e)
 
@@ -69,7 +145,7 @@ if __name__ == '__main__':
     store.image_store.dispatch(
         {
             'type': 'set_image',
-            'image': '/Users/Mies/Documents/usb_with_images.dd'
+            'image': '/Users/Mies/Documents/lubuntu.dd'
         }
     )
 
