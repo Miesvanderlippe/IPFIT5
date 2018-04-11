@@ -11,6 +11,7 @@ import zipfile
 from time import sleep
 from io import BytesIO
 import tarfile, io
+import langdetect
 
 
 class FileModule(ModuleInterface):
@@ -36,6 +37,8 @@ class FileModule(ModuleInterface):
         self.info_zip_bestanden = []
         self.info_tar_bestanden = []
         self.inhoud_tar_bestanden = []
+        self.namen_txt_bestanden = []
+        self.taalkans_txt_bestanden = []
 
     def progress(self) -> int:
         return self._progress
@@ -46,10 +49,12 @@ class FileModule(ModuleInterface):
     def run(self) -> None:
         data = self.imagehandling.files()
         #FileModule.bestanden_lijst(self, data)
-        FileModule.inhoud_zip_archieven(self, data)
-        FileModule.namen_zip_archieven(self, data)
-        FileModule.namen_tar_archieven(self, data)
-        FileModule.inhoud_tar_archieven(self, data)
+        #FileModule.inhoud_zip_archieven(self, data)
+        #FileModule.namen_zip_archieven(self, data)
+        #FileModule.namen_tar_archieven(self, data)
+        #FileModule.inhoud_tar_archieven(self, data)
+        FileModule.namen_txt_files(self, data)
+        FileModule.taalbepalen_txt_files(self, data)
 
         self._progress = 100
 
@@ -121,12 +126,33 @@ class FileModule(ModuleInterface):
                     self.info_tar_bestanden.append(files.file_name)
         #print(self.info_tar_bestanden)
 
+    def namen_txt_files(self, data):
+        data = self.imagehandling.files("\\.txt$")
+        for partition in data:
+            for file_info in partition:
+                bestandje = ArchiveModel(file_info)
+                if bestandje.file_name.endswith(".txt"):
+                    self.namen_txt_bestanden.append(bestandje.file_name)
+        #print(self.namen_txt_bestanden)
 
+    def taalbepalen_txt_files(self, data):
+        data = self.imagehandling.files("\\.txt$")
+        for partition in data:
+            for file_info in partition:
+                file_model = FileModel(file_info)
+                file_bytes = ImageHandler().single_file(file_model.partition_no, file_model.directory,
+                                                        file_model.file_name, False)
+                fake_file = BytesIO(file_bytes)
 
+                textual_content = "".join(str(line) for line in fake_file.readlines())
 
-
-
-
+                if len(textual_content) > len(self.namen_txt_bestanden):
+                    try:
+                        languages = langdetect.detect_langs(textual_content)
+                        self.taalkans_txt_bestanden.append(languages)
+                    except Exception as e:
+                        pass
+            #print(self.taalkans_txt_bestanden)
 
 if __name__ == '__main__':
 
