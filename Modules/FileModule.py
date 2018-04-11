@@ -3,7 +3,8 @@ from Utils.ImageHandler import ImageHandler
 from Utils.Store import Store
 from Models.ArchiveModel import ArchiveModel
 from Models.FileModel import FileModel
-from multiprocessing.pool import ThreadPool as Pool
+from os import name
+
 from multiprocessing import cpu_count
 import hashlib
 from Utils.XlsxWriter import XlsxWriter
@@ -12,6 +13,11 @@ from time import sleep
 from io import BytesIO
 import tarfile, io
 import langdetect
+
+if name == "nt":
+    from multiprocessing.pool import ThreadPool as Pool
+else:
+    from multiprocessing import Pool
 
 
 class FileModule(ModuleInterface):
@@ -39,6 +45,7 @@ class FileModule(ModuleInterface):
         self.inhoud_tar_bestanden = []
         self.namen_txt_bestanden = []
         self.taalkans_txt_bestanden = []
+        self.timeline = []
 
     def progress(self) -> int:
         return self._progress
@@ -48,13 +55,14 @@ class FileModule(ModuleInterface):
 
     def run(self) -> None:
         data = self.imagehandling.files()
-        #FileModule.bestanden_lijst(self, data)
+        FileModule.bestanden_lijst(self, data)
         #FileModule.inhoud_zip_archieven(self, data)
         #FileModule.namen_zip_archieven(self, data)
-        #FileModule.namen_tar_archieven(self, data)
+       #FileModule.namen_tar_archieven(self, data)
         #FileModule.inhoud_tar_archieven(self, data)
-        FileModule.namen_txt_files(self, data)
-        FileModule.taalbepalen_txt_files(self, data)
+        #FileModule.namen_txt_files(self, data)
+        #FileModule.taalbepalen_txt_files(self, data)
+        FileModule.sorteren_timeline(self)
 
         self._progress = 100
 
@@ -65,20 +73,22 @@ class FileModule(ModuleInterface):
             with Pool(processes=cpu_count()) as pool:
                 bestanden = []
                 [
-                    pool.apply_async(self.best_lijst,(x,),callback=bestanden.append, error_callback=print)
+                    pool.apply_async(self.best_lijst, (x,), callback=bestanden.append, error_callback=None)
                     for x in partition
                 ]
                 while partition_lengte != len(bestanden):
                     sleep(0.05)
 
                 self.bestandslijst.extend(bestanden)
-                #print(self.bestandslijst)
 
-    @staticmethod
-    def best_lijst(file_info: []) -> ArchiveModel:
+        #print("\r\n".join([str(x) for x in self.bestandslijst]))
+
+
+    def best_lijst(self,file_info: []) -> ArchiveModel:
         model = ArchiveModel(file_info)
-        model.get_hash()
+        #model.get_hash()
         #print(model)
+        return model
 
     def inhoud_zip_archieven(self, data):
          data = self.imagehandling.files("\\.zip$")
@@ -153,6 +163,14 @@ class FileModule(ModuleInterface):
                     except Exception as e:
                         pass
             #print(self.taalkans_txt_bestanden)
+
+    def sorteren_timeline(self):
+        pass
+        #self.timeline = sorted(self.bestandslijst)
+
+
+
+
 
 if __name__ == '__main__':
 
