@@ -118,3 +118,4 @@ Configs/*.cfg
 # Output files
 Output/**/*.xlsx
 Output/**/*.csv
+Output/**/*.png
