@@ -122,6 +122,7 @@ Modules/*.txt
 # Output files
 Output/**/*.xlsx
 Output/**/*.csv
+Output/**/*.png
 
 # Ignore langdetect
 langdetect/

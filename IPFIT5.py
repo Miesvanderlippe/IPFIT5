@@ -13,6 +13,9 @@ import logging
 from sys import platform
 from subprocess import call
 from pathlib import Path
+from Modules.PhotoModule import PhotoModule
+from Modules.EmailModule import EmailModule
+from time import sleep
 
 logging.basicConfig(filename="forms.log", level=logging.DEBUG)
 
@@ -23,7 +26,18 @@ class MainApp(Frame):
         self._screen = screen
 
         credential_state = self.stores.credential_store.get_state()
-        current_state = {**credential_state}
+        current_state = {
+            **credential_state,
+            "PhotoModuleDescription":
+            "This module extracts information about images and cameras used "
+            "to \ntake them. It will produce an Excel sheet with tabs for \n"
+            "each camera used and will display meta data for each image along\n"
+            "with where it was found and what it's SHA256 hash is. "
+            "\n\nWill take up to two minutes per GB of data.",
+            "EmailModuleDescription":
+            "This module extracts some metadata about e-mail conversations\n"
+            "held on this device."
+        }
 
         super(MainApp, self).__init__(
             screen,
@@ -89,6 +103,37 @@ class MainApp(Frame):
         image_buttons_layout.add_widget(Divider(height=3), 1)
         image_buttons_layout.add_widget(Divider(height=3), 2)
 
+        photos_layout = Layout([1, 18, 1])
+        self.add_layout(photos_layout)
+
+        photos_layout.add_widget(Label("Fotosmodule:", height=2), 1)
+
+        photo_module_description = TextBox(7, name="PhotoModuleDescription",
+                                           as_string=True)
+        photo_module_description.disabled = True
+
+        photos_layout.add_widget(photo_module_description, 1)
+
+        photos_layout.add_widget(
+            Button('Run module', self.photo_module), 1)
+
+        photos_layout.add_widget(Divider(height=3), 1)
+
+        email_layout = Layout([1, 18, 1])
+        self.add_layout(email_layout)
+        email_layout.add_widget(Label("Emailmodule:", height=2), 1)
+
+        email_module_description = TextBox(7, name="PhotoModuleDescription",
+                                           as_string=True)
+        email_module_description.disabled = True
+
+        email_layout.add_widget(email_module_description, 1)
+
+        email_layout.add_widget(
+            Button('Run module', self.email_module), 1)
+
+        email_layout.add_widget(Divider(height=3), 1)
+
         # Add some buttons
         layout2 = Layout([1, 1, 1])
         self.add_layout(layout2)
@@ -97,40 +142,24 @@ class MainApp(Frame):
         layout2.add_widget(Button("Quit", self._quit), 2)
 
         self.fix()
-        # submenu_email = Menu(EmailModule.menu(), self.screen)
-        # submenu_hacked = Menu(HackedModule.menu(), self.screen)
-        # submenu_photos = Menu(PhotoModule.menu(), self.screen)
-        # submenu_files = Menu(FileModule.menu(), self.screen)
 
-        # if self.stores.image_store.get_state() == 'initial' \
-        #        or self.stores.image_store.get_state() is None:
-        #     main_menu_items = [
-        #        ('Load image', self.filepicker)
-        #    ]
-        # else:
-        #    main_menu_items = [
-        #        ('Load image (Selected image: {})'.format(
-        #            self.stores.image_store.get_state().split(sep)[-1]),
-        #            self.filepicker),
-        #        ('Emails', submenu_email.display),
-        #        ('Hacked', submenu_hacked.display),
-        #        ('Pictures', submenu_photos.display),
-        #        ('Files', submenu_files.display)
-        #    ]
-        # main_menu = Menu(main_menu_items, self.screen, sub=False)
-        # main_menu.display()
+    def email_module(self):
+        email_module = EmailModule()
+        email_module.run()
+
+    def photo_module(self):
+        photo_module = PhotoModule()
+
+        # Start module
+        photo_module.run()
 
     def file_info(self):
         image_handler = ImageHandler()
-        metadata = image_handler.encase_metadata()
         volume_information = image_handler.volume_info()
-
-        if len(metadata) > 0:
-            metadata.append('')
 
         self._scene.add_effect(
             PopUpDialog(self._screen,
-                        '\n'.join([*metadata, *volume_information]), ['OK']))
+                        '\n'.join([*volume_information]), ['OK']))
 
     def file_picker(self):
         raise NextScene('FilePicker')
@@ -192,9 +221,6 @@ class MainApp(Frame):
         # Yes is the first button
         if selected == 0:
             raise StopApplication("User requested exit")
-
-    # def filepicker(self):
-    #     image_filepicker()
 
     @staticmethod
     def finished(_):

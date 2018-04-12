@@ -67,8 +67,8 @@ class FileModel:
                "extension: {3}\ntype: {4}\ndate_created: {5}\n" \
                "date_modified: {6}\ndate_changed: {7}\n" \
                "file_size: {8}\npath: {9}\ndirectory: {10}\nhash: {11}".format(
-                    self.partition, self.partition_no, self.file_name,
-                    self.extension, self.type, self.date_created,
-                    self.date_modified, self.date_changed, self.file_size,
-                    self.path, self.directory, self.hash
-                )
+                   self.partition, self.partition_no, self.file_name,
+                   self.extension, self.type, self.date_created,
+                   self.date_modified, self.date_changed, self.file_size,
+                   self.path, self.directory, self.hash
+               )

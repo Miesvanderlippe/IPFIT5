@@ -7,12 +7,11 @@ from multiprocessing import cpu_count
 from Utils.XlsxWriter import XlsxWriter
 from time import sleep
 
-import re
-
-
 if name == "nt":
+    # Threadpool for Windows because of lack of memory sharing
     from multiprocessing.pool import ThreadPool as Pool
 else:
+    # Processpool for MacOs/Linux as it utilizes processor much better
     from multiprocessing import Pool
 
 
