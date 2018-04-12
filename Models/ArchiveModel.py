@@ -1,3 +1,4 @@
+from datetime import datetime
 from io import BytesIO
 from Models.FileModel import FileModel
 from Utils.ImageHandler import ImageHandler
@@ -13,6 +14,13 @@ class ArchiveModel(FileModel):
         "Full path",
         "File name",
         "Hash"
+    ]
+
+    worksheet_headers_timeline = [
+        *worksheet_base_headers,
+        "Date created",
+        "Date modified",
+        "Date changed"
     ]
 
     worksheet_headers_lang = [
@@ -169,8 +177,7 @@ class ArchiveModel(FileModel):
             self.file_name, False
         )
 
-    @property
-    def xlsx_rows(self) -> []:
+    def xlsx_rows(self, timeline_headers: bool = False) -> []:
         """
         Rows ready to be written to xlsx export. May contain different rows
         like archive contents if the file is an archive or languages if the
@@ -183,10 +190,24 @@ class ArchiveModel(FileModel):
             self.hash
         ]
 
-        if self.is_text:
+        if timeline_headers:
+            base_rows.append(
+                self.date_created.strftime('%d-%m-%Y %H:%M:%S')
+                if isinstance(self.date_created, datetime)
+                else str(self.date_created))
+            base_rows.append(
+                self.date_modified.strftime('%d-%m-%Y %H:%M:%S')
+                if isinstance(self.date_modified, datetime)
+                else str(self.date_modified))
+            base_rows.append(
+                self.date_changed.strftime('%d-%m-%Y %H:%M:%S')
+                if isinstance(self.date_changed, datetime)
+                else str(self.date_changed))
+
+        elif self.is_text:
             base_rows.append(self.languages)
 
-        if self.is_archive:
+        elif self.is_archive:
             base_rows.append(self.archive_type)
             base_rows.append("; ".join(self.archive_contens()))
 
