@@ -2,8 +2,13 @@ exifread
 git+https://github.com/peterbrittain/asciimatics.git
 pydux
 pytsk3
+<<<<<<< HEAD
+langdetect
+XlsxWriter
+=======
 XlsxWriter
 libpff-python
 networkx
 pandas
 matplotlib
+>>>>>>> origin/master

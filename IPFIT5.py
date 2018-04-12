@@ -15,6 +15,7 @@ from subprocess import call
 from pathlib import Path
 from Modules.PhotoModule import PhotoModule
 from Modules.EmailModule import EmailModule
+from Modules.FileModule import FileModule
 from time import sleep
 
 logging.basicConfig(filename="forms.log", level=logging.DEBUG)
@@ -36,7 +37,11 @@ class MainApp(Frame):
             "\n\nWill take up to two minutes per GB of data.",
             "EmailModuleDescription":
             "This module extracts some metadata about e-mail conversations\n"
-            "held on this device."
+            "held on this device.",
+            "FileModuleDescription":
+            "Generates a timeline with hashes and a list of archives with \n"
+            "their contents. Also generates a list with text files and \n"
+            "what language they are written in. "
         }
 
         super(MainApp, self).__init__(
@@ -123,7 +128,7 @@ class MainApp(Frame):
         self.add_layout(email_layout)
         email_layout.add_widget(Label("Emailmodule:", height=2), 1)
 
-        email_module_description = TextBox(7, name="PhotoModuleDescription",
+        email_module_description = TextBox(3, name="EmailModuleDescription",
                                            as_string=True)
         email_module_description.disabled = True
 
@@ -134,6 +139,21 @@ class MainApp(Frame):
 
         email_layout.add_widget(Divider(height=3), 1)
 
+        files_layout = Layout([1, 18, 1])
+        self.add_layout(files_layout)
+        files_layout.add_widget(Label("Filesmodule:", height=2), 1)
+
+        files_module_description = TextBox(4, name="FileModuleDescription",
+                                           as_string=True)
+        files_module_description.disabled = True
+
+        files_layout.add_widget(files_module_description, 1)
+
+        files_layout.add_widget(
+            Button('Run module', self.files_module), 1)
+
+        files_layout.add_widget(Divider(height=3), 1)
+
         # Add some buttons
         layout2 = Layout([1, 1, 1])
         self.add_layout(layout2)
@@ -142,6 +162,10 @@ class MainApp(Frame):
         layout2.add_widget(Button("Quit", self._quit), 2)
 
         self.fix()
+
+    def files_module(self):
+        files_module = FileModule()
+        files_module.run()
 
     def email_module(self):
         email_module = EmailModule()
