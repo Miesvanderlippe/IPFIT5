@@ -252,8 +252,8 @@ class EmailModule(ModuleInterface):
             x for x in os.listdir(self.pathing)
             if x.startswith('verzameling_emailadressen')
         ]
-        with open(os.path.join(self.pathing, 'Alle_Email_Adressen.csv'), 'wb') \
-                as out:
+        with open(os.path.join(self.pathing, 'Alle_Email_Adressen.csv'),
+                  'wb') as out:
             for x in files:
                 f_path = os.path.join(self.pathing, x)
                 with open(f_path, 'rb') as f:
@@ -273,7 +273,7 @@ class EmailModule(ModuleInterface):
                     out.write(f.read())
 
         for f in files:
-            if not "Verwijderde" in f:
+            if "Verwijderde" not in f:
                 os.remove(os.path.join(self.pathing, f))
 
     def merge_csv_email_notes(self):
