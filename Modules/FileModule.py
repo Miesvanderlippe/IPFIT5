@@ -104,16 +104,13 @@ class FileModule(ModuleInterface):
                 if values[0] != values[1]:
                     timeline.append(copy(file_model))
 
-        timeline.sort( key=
-                       lambda x: x.date_created
-                       if isinstance(x.date_created, datetime)
-                       else datetime.min)
-        timeline.sort(key=
-                      lambda x: x.date_modified
+        timeline.sort(key=lambda x: x.date_created
+                      if isinstance(x.date_created, datetime)
+                      else datetime.min)
+        timeline.sort(key=lambda x: x.date_modified
                       if isinstance(x.date_modified, datetime)
                       else datetime.min)
-        timeline.sort(key=
-                      lambda x: x.date_changed
+        timeline.sort(key=lambda x: x.date_changed
                       if isinstance(x.date_changed, datetime)
                       else datetime.min)
 
