@@ -25,7 +25,7 @@ class ArchiveModel(FileModel):
         "Archive type",
         "Contents"
     ]
-    
+
     def __init__(self, file_info: []):
         super().__init__(file_info)
         self._archive_type = None
