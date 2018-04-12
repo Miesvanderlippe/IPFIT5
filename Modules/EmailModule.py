@@ -15,7 +15,7 @@ from Utils.ImageHandler import ImageHandler
 from Utils.Store import Store
 
 
-class EmailModuleTest(ModuleInterface):
+class EmailModule(ModuleInterface):
     def __init__(self) -> None:
         super().__init__()
         self.ewf = ImageHandler()

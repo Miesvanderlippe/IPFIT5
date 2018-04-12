@@ -14,6 +14,7 @@ from sys import platform
 from subprocess import call
 from pathlib import Path
 from Modules.PhotoModule import PhotoModule
+from Modules.EmailModule import EmailModule
 from time import sleep
 
 logging.basicConfig(filename="forms.log", level=logging.DEBUG)
@@ -32,7 +33,10 @@ class MainApp(Frame):
             "to \ntake them. It will produce an Excel sheet with tabs for \n"
             "each camera used and will display meta data for each image along\n"
             "with where it was found and what it's SHA256 hash is. "
-            "\n\nWill take up to two minutes per GB of data."
+            "\n\nWill take up to two minutes per GB of data.",
+            "EmailModuleDescription":
+            "This module extracts some metadata about e-mail conversations\n"
+            "held on this device."
         }
 
         super(MainApp, self).__init__(
@@ -115,6 +119,22 @@ class MainApp(Frame):
 
         photos_layout.add_widget(Divider(height=3), 1)
 
+
+        email_layout = Layout([1, 18, 1])
+        self.add_layout(email_layout)
+        email_layout.add_widget(Label("Emailmodule:", height=2), 1)
+
+        email_module_description = TextBox(7, name="PhotoModuleDescription",
+                                           as_string=True)
+        email_module_description.disabled = True
+
+        email_layout.add_widget(email_module_description, 1)
+
+        email_layout.add_widget(
+            Button('Run module', self.email_module), 1)
+
+        email_layout.add_widget(Divider(height=3), 1)
+
         # Add some buttons
         layout2 = Layout([1, 1, 1])
         self.add_layout(layout2)
@@ -123,6 +143,10 @@ class MainApp(Frame):
         layout2.add_widget(Button("Quit", self._quit), 2)
 
         self.fix()
+
+    def email_module(self):
+        email_module = EmailModule()
+        email_module.run()
 
     def photo_module(self):
         photo_module = PhotoModule()
