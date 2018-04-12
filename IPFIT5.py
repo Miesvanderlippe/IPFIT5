@@ -119,7 +119,6 @@ class MainApp(Frame):
 
         photos_layout.add_widget(Divider(height=3), 1)
 
-
         email_layout = Layout([1, 18, 1])
         self.add_layout(email_layout)
         email_layout.add_widget(Label("Emailmodule:", height=2), 1)

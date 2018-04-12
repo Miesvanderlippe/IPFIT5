@@ -1,5 +1,6 @@
 import csv
-import os, os.path
+import os
+import os.path
 import math
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -391,7 +392,8 @@ class EmailModule(ModuleInterface):
             df_new.to_excel(writer, index=False)
             writer.save()
 
-        filename_four = os.path.join(self.pathing, 'map_Verwijderde items.xlsx')
+        filename_four = os.path.join(
+            self.pathing, 'map_Verwijderde items.xlsx')
         with open(filename_four, 'w', encoding="utf-8"):
             df_new = pd.read_csv(os.path.join(self.pathing,
                                               'map_Verwijderde items.csv'))
