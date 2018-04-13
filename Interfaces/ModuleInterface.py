@@ -8,7 +8,7 @@ class ModuleInterface(ABC):
     """
 
     def __init__(self) -> None:
-        self.logger = ExtendedLogger(self.__class__.__name__)
+        self.logger = ExtendedLogger.get_instance(self.__class__.__name__)
 
     @abstractmethod
     def run(self) -> None:
