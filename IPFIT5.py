@@ -18,6 +18,9 @@ from Modules.EmailModule import EmailModule
 from Modules.FileModule import FileModule
 from Utils.Logger import ExtendedLogger
 from Models.LogEntryModel import LogEntryModel
+from Utils.ExceptionHandler import exceptionlogger
+import sys
+
 logging.basicConfig(filename="forms.log", level=logging.DEBUG)
 
 
@@ -308,6 +311,10 @@ def demo(screen, scene):
 
 if __name__ == '__main__':
     last_scene = None
+
+    # Set exceptionhook
+    sys.excepthook = exceptionlogger
+
     while True:
         try:
             Screen.wrapper(demo, catch_interrupt=False, arguments=[last_scene])
