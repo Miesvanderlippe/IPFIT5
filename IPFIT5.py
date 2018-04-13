@@ -166,7 +166,7 @@ class MainApp(Frame):
         self.fix()
 
     def files_module(self):
-        logger.write_log(LogEntryModel.create_logentry(
+        self.logger.write_log(LogEntryModel.create_logentry(
             LogEntryModel.ResultType.informative,
             "Starting files module", "User interaction", "FileModule()",
             "FileModule", "FileModule started"))
@@ -174,13 +174,13 @@ class MainApp(Frame):
         files_module = FileModule()
         files_module.run()
 
-        logger.write_log(LogEntryModel.create_logentry(
+        self.logger.write_log(LogEntryModel.create_logentry(
             LogEntryModel.ResultType.informative,
             "Quiting files module", "Module ran", "FileModule()",
             "FileModule", "FileModule stopped"))
 
     def email_module(self):
-        logger.write_log(LogEntryModel.create_logentry(
+        self.logger.write_log(LogEntryModel.create_logentry(
             LogEntryModel.ResultType.informative,
             "Starting email module", "User interaction", "EmailModule()",
             "EmailModule", "EmailModule started"))
@@ -188,13 +188,13 @@ class MainApp(Frame):
         email_module = EmailModule()
         email_module.run()
 
-        logger.write_log(LogEntryModel.create_logentry(
+        self.logger.write_log(LogEntryModel.create_logentry(
             LogEntryModel.ResultType.informative,
             "Quiting email module", "Module ran", "EmailModule()",
             "EmailModule", "EmailModule stopped"))
 
     def photo_module(self):
-        logger.write_log(LogEntryModel.create_logentry(
+        self.logger.write_log(LogEntryModel.create_logentry(
             LogEntryModel.ResultType.informative,
             "Starting photo module", "User interaction", "PhotoModule()",
             "PhotoModule", "PhotoModule started"))
@@ -203,7 +203,7 @@ class MainApp(Frame):
         # Start module
         photo_module.run()
 
-        logger.write_log(LogEntryModel.create_logentry(
+        self.logger.write_log(LogEntryModel.create_logentry(
             LogEntryModel.ResultType.informative,
             "Quiting photo module", "Module ran", "PhotoModule()",
             "PhotoModule", "PhotoModule stopped"))
@@ -221,7 +221,7 @@ class MainApp(Frame):
 
     def save_creds_to_disk(self) -> None:
         self.stores.credential_store.dispatch({'type': 'save_to_disk'})
-        logger.write_log(LogEntryModel.create_logentry(
+        self.logger.write_log(LogEntryModel.create_logentry(
             LogEntryModel.ResultType.informative,
             "Saving new credentials to disk", "New credentials found",
             "CredentialStore save to disk", "CredentialStore",

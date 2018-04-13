@@ -8,7 +8,7 @@ from time import sleep
 from Utils.ImageHandler import ImageHandler
 from Utils.Store import Store
 from Utils.XlsxWriter import XlsxWriter
-
+from Models.LogEntryModel import LogEntryModel
 
 class FileModule(ModuleInterface):
 
@@ -68,12 +68,18 @@ class FileModule(ModuleInterface):
         elif model.is_text:
             self.text_files.append(model)
 
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Ingested file {0}".format(model.path),
+            "Digest some data", "ArchiveModel.after_ingest()",
+            "using ArchiveModel and FileModule", "File ingested"))
+
         self.files.append(model)
 
     @staticmethod
     def ingest_file(file_info: []) -> ArchiveModel:
         model = ArchiveModel(file_info)
-        model.get_hash()
+        # model.get_hash()
 
         return model
 
@@ -138,6 +144,12 @@ class FileModule(ModuleInterface):
                                 [x.xlsx_rows() for x in self.text_files])
 
         xslx_writer.close()
+
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Generated timeline",
+            "Make data readable", "ArchiveModel.gen_exports()",
+            "using ArchiveModel and FileModule", "Timeline generated"))
 
 
 if __name__ == '__main__':
