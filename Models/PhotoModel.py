@@ -2,7 +2,9 @@ import imghdr
 import exifread
 
 from Models.FileModel import FileModel
+from Models.LogEntryModel import LogEntryModel
 from Utils.ImageHandler import ImageHandler
+from Utils.Logger import ExtendedLogger
 from io import BytesIO
 
 
@@ -30,6 +32,8 @@ class PhotoModel(FileModel):
         self._ingested = False
         self._img_type = None
         self._meta_data = {}
+
+        self.logger = ExtendedLogger.get_instance(__class__.__name__)
 
         super().__init__(file_info)
 
@@ -146,6 +150,12 @@ class PhotoModel(FileModel):
             self.partition_no, self.directory,
             self.file_name, True
         )
+
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.positive,
+            "Generating hash for {0}".format(self.path),
+            "no motivation", "ImageHandler.single_file",
+            "using ImageHandler and sha256", self.hash))
 
         return self.hash
 
