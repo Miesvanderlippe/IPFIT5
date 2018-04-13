@@ -25,7 +25,6 @@ class PhotoModule(ModuleInterface):
             LogEntryModel.ResultType.informative, "Initiated photo module",
             "no motivation", "PhotoModule()", "using PhotoModule", "Initiated"))
 
-
     @property
     def xlsx_writer(self) -> XlsxWriter:
         """

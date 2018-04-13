@@ -330,4 +330,3 @@ if __name__ == '__main__':
             sys.exit(0)
         except ResizeScreenError as e:
             last_scene = e.scene
-
