@@ -16,7 +16,10 @@ from pathlib import Path
 from Modules.PhotoModule import PhotoModule
 from Modules.EmailModule import EmailModule
 from Modules.FileModule import FileModule
-from time import sleep
+from Utils.Logger import ExtendedLogger
+from Models.LogEntryModel import LogEntryModel
+from Utils.ExceptionHandler import exceptionlogger
+import sys
 
 logging.basicConfig(filename="forms.log", level=logging.DEBUG)
 
@@ -43,6 +46,8 @@ class MainApp(Frame):
             "their contents. Also generates a list with text files and \n"
             "what language they are written in. "
         }
+
+        self.logger = ExtendedLogger.get_instance("Interface")
 
         super(MainApp, self).__init__(
             screen,
@@ -164,18 +169,47 @@ class MainApp(Frame):
         self.fix()
 
     def files_module(self):
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Starting files module", "User interaction", "FileModule()",
+            "FileModule", "FileModule started"))
+
         files_module = FileModule()
         files_module.run()
 
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Quiting files module", "Module ran", "FileModule()",
+            "FileModule", "FileModule stopped"))
+
     def email_module(self):
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Starting email module", "User interaction", "EmailModule()",
+            "EmailModule", "EmailModule started"))
+
         email_module = EmailModule()
         email_module.run()
 
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Quiting email module", "Module ran", "EmailModule()",
+            "EmailModule", "EmailModule stopped"))
+
     def photo_module(self):
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Starting photo module", "User interaction", "PhotoModule()",
+            "PhotoModule", "PhotoModule started"))
         photo_module = PhotoModule()
 
         # Start module
         photo_module.run()
+
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Quiting photo module", "Module ran", "PhotoModule()",
+            "PhotoModule", "PhotoModule stopped"))
 
     def file_info(self):
         image_handler = ImageHandler()
@@ -190,6 +224,11 @@ class MainApp(Frame):
 
     def save_creds_to_disk(self) -> None:
         self.stores.credential_store.dispatch({'type': 'save_to_disk'})
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Saving new credentials to disk", "New credentials found",
+            "CredentialStore save to disk", "CredentialStore",
+            "Credentials saved"))
 
     def _view(self):
         # Build result of this form and display it.
@@ -272,9 +311,23 @@ def demo(screen, scene):
 
 if __name__ == '__main__':
     last_scene = None
+
+    # Set exceptionhook
+    sys.excepthook = exceptionlogger
+
     while True:
         try:
             Screen.wrapper(demo, catch_interrupt=False, arguments=[last_scene])
+            logger = ExtendedLogger.get_instance("Interface")
+
+            logger.write_log(LogEntryModel.create_logentry(
+                LogEntryModel.ResultType.informative,
+                "Exiting", "no motivation", "exit",
+                "none", "exited"))
+
+            logger.quit_all_instances()
+
             sys.exit(0)
         except ResizeScreenError as e:
             last_scene = e.scene
+

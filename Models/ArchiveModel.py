@@ -2,6 +2,8 @@ from datetime import datetime
 from io import BytesIO
 from Models.FileModel import FileModel
 from Utils.ImageHandler import ImageHandler
+from Models.LogEntryModel import LogEntryModel
+from Utils.Logger import ExtendedLogger
 
 import tarfile
 import zipfile
@@ -42,6 +44,7 @@ class ArchiveModel(FileModel):
         self._archive_contents = None
         # Cache languages
         self._languages = None
+        self.logger = ExtendedLogger.get_instance(__class__.__name__)
 
     @property
     def archive_type(self) -> str:
@@ -116,6 +119,12 @@ class ArchiveModel(FileModel):
             self._languages = ", ".join(
                 ["{0} ({1}%)".format(x.lang, x.prob) for x in languages])
 
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.positive,
+            "Indexed languages in {0}".format(self.path),
+            "Index textual files", "ArchiveModel.languages",
+            "using langdetect", ";".join(self._languages)))
+
         return self._languages
 
     def archive_contens(self) -> []:
@@ -129,11 +138,20 @@ class ArchiveModel(FileModel):
 
         self._archive_contents = []
 
+        if not self.is_archive:
+            return self._archive_contents
+
         if self.archive_type == "zip":
             self._archive_contents = self.extract_zip()
 
         elif self.archive_type == "tar.gz":
             self._archive_contents = self.extract_gz()
+
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.positive,
+            "Extracted data from {0}".format(self.path),
+            "Index archive contents", "ArchiveModel.archive_contens",
+            "using python archive handles", ";".join(self._archive_contents)))
 
         return self._archive_contents
 
@@ -230,6 +248,12 @@ class ArchiveModel(FileModel):
             self.partition_no, self.directory,
             self.file_name, True
         )
+
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.positive,
+            "Generating hash for {0}".format(self.path),
+            "no motivation", "ImageHandler.single_file",
+            "using ImageHandler and sha256", self.hash))
 
         return self.hash
 

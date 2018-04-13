@@ -8,6 +8,17 @@ class LogEntryModel:
     entries using vibrant colours or as a more neutral string. It's primary
     function is to carry the information throughout the program.
     """
+    workbook_headers = [
+        "type",
+        "when",
+        "who",
+        "what",
+        "where",
+        "why",
+        "method",
+        "using",
+        "result"
+    ]
 
     def __init__(self) -> None:
 
@@ -35,35 +46,42 @@ class LogEntryModel:
         # result
         self.resultType = LogEntryModel.ResultType.informative
 
+    @property
+    def worksheet_items(self) -> []:
+        return [
+            self.resultType,
+            self.when.strftime('%d-%m-%Y %H:%M:%S'),
+            self.who,
+            self.what,
+            self.where,
+            self.why,
+            self.method,
+            self.using,
+            self.result
+        ]
+
     @staticmethod
-    def create_logentry(result_type, who: str="", what: str="", where: str="",
-                        why: str="", method: str="", using: str="",
-                        result: str="", module: str=""):
+    def create_logentry(result_type, what: str="", why: str="", method: str="",
+                        using: str="", result: str=""):
         """
         Creates a logentry using the parameters given. Shorter than creating an
         instance and filling it.
         :param result_type:
-        :param who:
         :param what:
-        :param where:
         :param why:
         :param method:
         :param using:
         :param result:
-        :param module:
         :return: A log entry
         """
 
         entry = LogEntryModel()
 
-        entry.who = [entry.who, who][len(who) > 0]
         entry.what = what
-        entry.where = [entry.where, where][len(where) > 0]
         entry.why = why
         entry.method = method
         entry.using = using
         entry.result = result
-        entry.module = module
         entry.resultType = result_type
 
         return entry

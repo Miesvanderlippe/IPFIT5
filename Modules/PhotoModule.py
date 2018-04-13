@@ -2,17 +2,12 @@ from os import name
 from Interfaces.ModuleInterface import ModuleInterface
 from Utils.Store import Store
 from Utils.ImageHandler import ImageHandler
+from Models.LogEntryModel import LogEntryModel
 from Models.PhotoModel import PhotoModel
+from multiprocessing.pool import ThreadPool as Pool
 from multiprocessing import cpu_count
 from Utils.XlsxWriter import XlsxWriter
 from time import sleep
-
-if name == "nt":
-    # Threadpool for Windows because of lack of memory sharing
-    from multiprocessing.pool import ThreadPool as Pool
-else:
-    # Processpool for MacOs/Linux as it utilizes processor much better
-    from multiprocessing import Pool
 
 
 class PhotoModule(ModuleInterface):
@@ -22,11 +17,14 @@ class PhotoModule(ModuleInterface):
         self.images_by_camera = {}
         self.files = []
 
-        self._status = "Initialised"
-        self._progress = 0
         self._xlsx_writer = None
 
         super().__init__()
+
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative, "Initiated photo module",
+            "no motivation", "PhotoModule()", "using PhotoModule", "Initiated"))
+
 
     @property
     def xlsx_writer(self) -> XlsxWriter:
@@ -74,14 +72,14 @@ class PhotoModule(ModuleInterface):
         Should return what the moduel is doing.
         :return: str, current job
         """
-        return self._status
+        return ""
 
     def progress(self) -> int:
         """
         Current progression (0-100)
         :return: int, percentage to done
         """
-        return self._progress
+        return 100
 
     def create_export(self) -> None:
         """
@@ -106,6 +104,11 @@ class PhotoModule(ModuleInterface):
 
         self.xlsx_writer.close()
 
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.positive, "Generated camera exports",
+            "Make info readable", "PhotoModule.create_export()",
+            "using PhotoModule and XlsxWriter", "Exports created"))
+
     def after_ingest(self, file_model: PhotoModel) -> None:
         """
         Keeps the camera models & pictures by camera lists up to date.
@@ -122,6 +125,11 @@ class PhotoModule(ModuleInterface):
                 self.images_by_camera[camera_model] = []
 
             self.images_by_camera[camera_model].append(file_model)
+        self.logger.write_log(LogEntryModel.create_logentry(
+            LogEntryModel.ResultType.informative,
+            "Ingested file {0}".format(file_model.path),
+            "Digest some data", "PhotoModule.after_ingest()",
+            "using PhotoModule and PhotoModel", "File ingested"))
 
     @staticmethod
     def ingest_file(file_info: []) -> PhotoModel:
