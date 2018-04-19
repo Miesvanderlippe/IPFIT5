@@ -87,8 +87,10 @@ class FileModule(ModuleInterface):
         timeline = []
 
         for file_model in self.files:
+            # created date is formated to string, or none if it isn't a date
             create = file_model.date_created.strftime('%d-%m-%Y %H:%M:%S') if \
                 isinstance(file_model.date_created, datetime) else None
+            # same for the rest of the values
             modify = file_model.date_modified.strftime('%d-%m-%Y %H:%M:%S') if \
                 isinstance(file_model.date_modified, datetime) else None
             change = file_model.date_changed.strftime('%d-%m-%Y %H:%M:%S') if \
@@ -96,26 +98,45 @@ class FileModule(ModuleInterface):
 
             timeline.append(file_model)
 
+            # If all timestamp fields are filled
             if all(x is not None for x in [create, modify, change]):
+                # We check if the date created is different from the modified
+                # date and append a copy if that is the case.
                 if create != modify:
                     timeline.append(copy(file_model))
 
+                # If there's another unique value between changed, modified &
+                # created we append another copy ( so there'd be 3 copies
+                # in the timeline for 3 events)
                 if (create != change and change != modify) or \
                         (modify != change and change != create):
                     timeline.append(copy(file_model))
 
+            # Else, if there's only two dates in the three timestamps
             elif sum(x is not None for x in [create, modify, change]) == 2:
+                # We get the two values that do hold a date
                 values = [x for x in [create, modify, change] if x is not None]
 
+                # and append a copy if they're different (there'd be 2 copies
+                # in the timeline).
+                # The two values could be any combination of the three
+                # possible timestamps but we only care if they're different
                 if values[0] != values[1]:
                     timeline.append(copy(file_model))
 
+        # First, sort timeline on creation date. If there isn't any the value
+        # will be the minimum date so the item will be at the bottom of the
+        # timeline.
         timeline.sort(key=lambda x: x.date_created
                       if isinstance(x.date_created, datetime)
                       else datetime.min)
+        # Next, we sort on modified with the same min-date rule
         timeline.sort(key=lambda x: x.date_modified
                       if isinstance(x.date_modified, datetime)
                       else datetime.min)
+        # Last, it's changed date.
+        # Because irrelevant items won't be moved you now have a sorted
+        # timeline.
         timeline.sort(key=lambda x: x.date_changed
                       if isinstance(x.date_changed, datetime)
                       else datetime.min)
