@@ -1,4 +1,3 @@
-from datetime import datetime
 from Models.LogEntryModel import LogEntryModel
 from Utils.XlsxWriter import XlsxWriter
 from pathlib import Path
@@ -7,8 +6,6 @@ import logging
 
 
 class ExtendedLogger:
-
-    instances = {}
 
     def __init__(self, name):
         log_folder = Path(Path(__file__).parent.parent.joinpath("Logs"))
@@ -20,13 +17,6 @@ class ExtendedLogger:
         self.Logger = logging.getLogger(name)
         self.name = name
         self.entries = []
-        ExtendedLogger.instances[name] = self
-
-    @staticmethod
-    def get_instance(name):
-        if name not in ExtendedLogger.instances:
-            ExtendedLogger(name)
-        return ExtendedLogger.instances[name]
 
     def write_log(self, log_entry: LogEntryModel) -> None:
         log_entry.module = self.name
@@ -52,17 +42,6 @@ class ExtendedLogger:
         self.entries = []
         xlsx_writer.close()
 
-    def quit_all_instances(self) -> None:
-        xlsx_writer = XlsxWriter("Logs")
-        for instance_name, instance in self.instances.items():
-            xlsx_writer.add_worksheet(instance_name)
-            xlsx_writer.write_headers(instance_name,
-                                      LogEntryModel.workbook_headers)
-            xlsx_writer.write_items(
-                instance_name, [x.worksheet_items for x in instance.entries])
-
-        self.instances = {}
-
 
 if __name__ == '__main__':
     logger = ExtendedLogger("Test")
@@ -78,4 +57,3 @@ if __name__ == '__main__':
     log1.result = "Log tested succesfully"
 
     logger.write_log(log1)
-    logger.quit_all_instances()
